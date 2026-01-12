@@ -1,0 +1,52 @@
+{% extends 'layout/app-layout.html'%}
+{% block content %}
+
+
+
+    <!-- <div class="col-md-10 min-height: 100%;" id="concertforms"> -->
+
+        <div class="formfull  bg-white">
+
+        <form method="POST" enctype="multipart/form-data" class="form" id="concertforms">
+            
+            <h1 style="color: #1E052F; font-size: 25px; text-align: center; margin-top: 50px">Add Concerts</h1>
+
+            {% csrf_token %}
+
+            {{ form.concert_name }}
+            {{ form.concert_name.errors }}
+            
+            {{ form.artists }}
+            {{ form.artists.errors }}
+            
+            {{ form.category }}
+            {{ form.category.errors }}
+            
+            {{ form.venue }}
+            {{ form.venue.errors }}
+            
+            {{ form.date_time }}
+            {{ form.date_time.errors }}
+            
+            {{ form.total_tickets }}
+            {{ form.total_tickets.errors }}
+            
+            {{ form.price }}
+            {{ form.price.errors }}
+            
+            {{ form.image }}
+            {{ form.image.errors }}
+
+            <a href="{% url 'concertlist' %}" class="btn float-left" style="margin: 35px 0px 50px 0px; background-color: #EC8735; color: white;">Cancel</a>
+
+            <button type="submit" class="btn float-right" style="margin: 35px 0px 50px 0px; background-color: #1E052F; color: white;">Submit</button>
+            
+
+    </form>
+    
+    </div>
+
+    <!-- </div> -->
+
+{% endblock %}
+

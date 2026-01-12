@@ -1,0 +1,93 @@
+{% extends 'layout/app-layout.html'%}
+{% block content %}
+
+<div class="listfull">
+
+            <div class="row bg-white"
+                    style="min-height: 104px; border-radius: 0px 0px 12px 12px;">
+
+                <div class="col">
+                    <div class="search-wrapper">
+                        <form method="get">
+                            <div class="search-box">
+                                <span class="search-icon">
+                                    <i class="bi bi-search"></i>
+                                </span>
+                                <input 
+                                    type="text"
+                                    name="q"
+                                    class="search-input"
+                                    placeholder="Search"
+                                    value="{{ request.GET.q }}"
+                                >
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+
+
+<!-- -------------------------------------------------------------------------------------------------------------------- -->
+
+            <div class="row  bg-white" style="margin-top: 20px ; border-radius: 12px;">
+                <div class="col">
+                
+            
+            <h1 style="color: #1E052F; font-size: 25px; margin-top: 50px; display: inline-block;">All Concerts List</h1>
+
+            <a href="{% url 'add_concerts' %}">
+            <button class="btn text-white btn-rounded float-right" 
+                style="background-color: #7F01F4; margin-top: 50px;">
+                Add New 
+                <i class="bi bi-plus"></i>
+            </button>
+            </a>
+  
+            <table class="table" style="margin-top: 20px;">
+                <thead>
+                    <tr>
+                    <th scope="col">Image</th>
+                    <th scope="col">Concert Name</th>
+                    <th scope="col">Artists</th>
+                    <th scope="col">Category</th>
+                    <th scope="col">Venue</th>
+                    <th scope="col">Date & Time</th>
+                    <th scope="col">Total Tickets</th>
+                    <th scope="col">Price</th>
+                    <th scope="col"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in concert_list %}
+                    <tr>
+                    <td><img src="{{ c.image.url }}" alt="{{c.concert_name}} Image" width="50px"></td>
+                    <td>{{ c.concert_name }}</td>
+                    <td>{{ c.artists }}</td>
+                    <td>{{ c.category }}</td>
+                    <td>{{ c.venue }}</td>
+                    <td>{{ c.date_time }}</td>
+                    <td>{{ c.total_tickets }}</td>
+                    <td>{{ c.price }}</td>
+                    <td>
+                        <a href="{% url 'edit_concert' c.id %}" class="text-dark">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+                        &nbsp;  &nbsp;
+                        
+                        <a href="{% url 'delete_concert' c.id %}" class="text-danger">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                </table>
+
+                </div>
+            </div>
+    
+    </div>
+
+
+{% endblock %}

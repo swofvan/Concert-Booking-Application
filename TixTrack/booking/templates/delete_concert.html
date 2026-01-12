@@ -1,0 +1,26 @@
+{% extends 'layout/app-layout.html'%}
+{% block content %}
+
+<div class="delete_page">
+
+            <div class="container mt-5 text-center bg-white">
+                <h4>Are you sure you want to delete</h4>
+                <h3 class="text-danger">{{ concert.concert_name }}?</h3>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    <a href="{% url 'concertlist' %}" class="btn btn-secondary">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-danger">
+                        Delete
+                    </button>
+                </form>
+            </div>
+
+            
+                
+    </div>
+
+
+{% endblock %}
