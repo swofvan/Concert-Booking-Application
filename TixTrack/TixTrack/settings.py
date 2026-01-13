@@ -27,6 +27,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+CORS_ALLOW_ALL_ORIGINS = True   #--------------------------------------------------------------- for react
+
+
 
 # Application definition
 
@@ -36,11 +39,19 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
+    'django.contrib.staticfiles',\
+    
     'booking',
+
+    'rest_framework',
+    'rest_framework.authtoken',
+
+    'corsheaders',                        # for Django successfully returned data, BUT Django did NOT send this header:
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',   #------------------------------------------------------ for React
+
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -132,5 +143,4 @@ import os
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = 'media/'
 
-# MEDIA_URL = '/media/'
-# MEDIA_ROOT = BASE_DIR / 'media'
+APPEND_SLASH = True

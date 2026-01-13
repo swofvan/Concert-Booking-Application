@@ -28,6 +28,8 @@ urlpatterns = [
     path('add_concerts/', views.addconcerts, name='add_concerts'),
     path('edit_concerts/<int:pk>/', views.edit_concert, name='edit_concert'),
     path('delete_concert/<int:pk>/', views.delete_concert, name='delete_concert'),
+
+    path('api/concerts', views.concert_list_api, name='concert_list_api')
     
 ]
 

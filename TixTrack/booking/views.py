@@ -2,7 +2,11 @@ from django.shortcuts import render, redirect
 from .forms import ConcertForm
 from .models import Concert
 
-from django.db.models import Q
+from django.db.models import Q     # for search / filter
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .serializers import ConcertSerializer
 
 # Create your views here.
 
@@ -26,6 +30,28 @@ def concertlist(request):
     return render (request, 'concert_list.html', {
         'concert_list' : concert_list
         })
+
+# --------------------------------------------------------------------------------------------------------------   api view
+
+@api_view(['GET'])
+def concert_list_api(request):
+    query = request.GET.get('q')
+    concerts = Concert.objects.all()
+
+    if query:
+        concerts = concerts.filter(
+            Q(concert_name__icontains=query) |
+            Q(artists__icontains=query) |
+            Q(category__icontains=query) |
+            Q(venue__icontains=query)
+        )
+
+    serializer = ConcertSerializer(
+        concerts,
+        many=True,
+        context={'request': request}
+    )
+    return Response(serializer.data)
 
 # --------------------------------------------------------------------------------------------------------------   Create
 

@@ -100,7 +100,7 @@ div {
 .nav-item:active i {
     background-color: #7801E6;
     padding: 5px;
-    border-radius: 5px;
+    border-radius: 20px;
 }
 
 #sidenav li:hover {
