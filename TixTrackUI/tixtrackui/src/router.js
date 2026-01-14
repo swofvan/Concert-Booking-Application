@@ -3,10 +3,14 @@ import App from "./App";
 import Concert_list from "./components/Consert_List";
 import View_Concert from "./components/View_Concert";
 
+import Register from "./components/auth/register";
+
 const router = createBrowserRouter([
     { path: '', element: <App/> },
     { path: 'concerts', element: <Concert_list/>, },
-    { path: '/concerts/:concertid', element: <View_Concert/> }
+    { path: '/concerts/:concertid', element: <View_Concert/> },
+
+    { path: 'register', element: <Register/>},
 ]);
 
 export default router;

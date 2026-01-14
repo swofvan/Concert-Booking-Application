@@ -38,7 +38,8 @@ function Navbar() {
                         style={{ backgroundColor:'#7F01F4' }}
                         >SignUp</Link> */}
 
-                    <Link to={'/'} className="btn text-white" 
+
+                    <Link to={'/register'} className="btn text-white"
                         style={{backgroundColor: '#7F01F4', height:'35px', width:'35px', borderRadius:'40px',display:'flex',alignItems:'center', justifyContent:'center', fontSize:'20px'}}>
                             <i className="bi bi-person-fill"></i>
                     </Link>

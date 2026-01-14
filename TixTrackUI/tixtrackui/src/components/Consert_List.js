@@ -22,6 +22,7 @@ function Concert_list() {
 
     return(
         <div style={{backgroundColor:'#e9f2ff', minHeight:'100vh'}}>
+
             <Navbar/>
 
             <div className="container" id="concertlist">

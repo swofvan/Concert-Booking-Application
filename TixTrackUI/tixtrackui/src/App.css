@@ -60,3 +60,9 @@
 #concertdetails li {
   border: none;
 }
+
+#registerformbg {
+  background-color: white;
+  padding: 50px 50px;
+  border-radius: 10px;
+}

@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',\
+    'django.contrib.staticfiles',
     
     'booking',
 
@@ -144,3 +144,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = 'media/'
 
 APPEND_SLASH = True
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+]
