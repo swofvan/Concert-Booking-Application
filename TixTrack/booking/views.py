@@ -4,22 +4,22 @@ from .models import Concert
 
 from django.db.models import Q     # for search / filter
 
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializers import ConcertSerializer
 
 # from .serializers import RegisterSerializer
 from rest_framework import status
 
-from django.contrib.auth import authenticate
-
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 from rest_framework.authtoken.models import Token
 
+from rest_framework.decorators import api_view, permission_classes, authentication_classes 
+from rest_framework.permissions import AllowAny
 from .forms import RegisterForm
-from django.http import JsonResponse
 
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from rest_framework.permissions import IsAuthenticated
 
 # Create your views here.
 
@@ -118,58 +118,77 @@ def delete_concert(request, pk):
 
 # -------------------------------------------------------------------------------------------------------------- Register
 
-# @csrf_exempt
-# @api_view(['POST'])
-# def register(request):
-#     serializer = RegisterSerializer(data=request.data)
-    
-#     if serializer.is_valid():
-#         serializer.save()
-#         return Response(
-#             {"message": "User registered successfully"},
-#             status=status.HTTP_201_CREATED
-#         )
-    
-#     print("SERIALIZER ERRORS:", serializer.errors)
-
-#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 @csrf_exempt
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def register(request):
-    if request.method == 'POST':
-        form = RegisterForm(request.POST)
+    
+    form = RegisterForm(data=request.data)   # IMPORTANT: use request.data (JSON-safe)
 
-        if form.is_valid():
-            form.save()
-            return JsonResponse(
-                {"message": "User registered successfully"},
-                status=201
-            )
+    if form.is_valid():
+        form.save()
+        return Response(
+            {"message": "User registered successfully"},
+            status=status.HTTP_201_CREATED
+        )
 
-        return JsonResponse(form.errors, status=400)
-
-    return JsonResponse({"error": "Invalid request"}, status=405)
+    return Response(
+        form.errors,
+        status=status.HTTP_400_BAD_REQUEST
+    )
 
 # -------------------------------------------------------------------------------------------------------------- Login
 
-# def login(request):
-    
-#     email = request.data.get("email")
-#     password = request.data.get("password")
-    
-#     if email is None or password is None:
-#         return Response(
-#             {'error': 'Please provide both email and password'},
-#             status=HTTP_400_BAD_REQUEST
-#             )
-    
-#     user = authenticate(email=email, password=password)
-    
-#     if not user:
-#         return Response({'error': 'Invalid Credentials'},
-#                         status=HTTP_404_NOT_FOUND)
-    
-#     token, _ = Token.objects.get_or_create(user=user)
+@csrf_exempt
+@api_view(['POST'])
+@authentication_classes([])
+@permission_classes([AllowAny])
+def user_login(request):
 
-#     return Response({'token': token.key},status=HTTP_200_OK)
+    email = request.data.get('email')
+    password = request.data.get('password')
+
+    if not email or not password:
+        return Response(
+            {"error": "email and password are required"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        user = User.objects.get(email=email)
+    
+    except User.DoesNotExist:
+        return Response(
+            {"error": "Invalid email or password"},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    user = authenticate(username=user.username, password=password)
+
+    if user is None:
+        return Response(
+            {"error": "Invalid email or password"},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    login(request, user)
+
+    return Response(
+        {
+            "message": "Login successful",
+            "username": user.username,
+            "email": user.email
+        },
+        status=status.HTTP_200_OK
+    )
+
+# -------------------------------------------------------------------------------------------------------------- Login
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def user_logout(request):
+    logout(request)
+    return Response(
+        {"message": "Logout successful"},
+        status=status.HTTP_200_OK
+    )

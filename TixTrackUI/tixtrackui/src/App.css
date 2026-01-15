@@ -66,3 +66,13 @@
   padding: 50px 50px;
   border-radius: 10px;
 }
+
+/* --------------------------------------------------------------------------- logout modal */
+
+.modal {
+  z-index: 1055;
+}
+
+.modal-backdrop {
+  z-index: 1050;
+}

@@ -31,9 +31,9 @@ urlpatterns = [
 
     path('api/concerts', views.concert_list_api, name='concert_list_api'),
 
-    path('register', views.register, name='register'),
-    # path('login', views.login, name='login'),
-    
+    path('register/', views.register, name='register'),
+    path('login/', views.user_login, name='login'),
+    path('logout/', views.user_logout, name='logout'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)

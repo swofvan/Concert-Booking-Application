@@ -27,8 +27,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-CORS_ALLOW_ALL_ORIGINS = True   #--------------------------------------------------------------- for react
-
+CORS_ALLOW_ALL_ORIGINS = True  #--------------------------------------------------------------- for react
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+]
 
 
 # Application definition
@@ -148,3 +150,5 @@ APPEND_SLASH = True
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
 ]
+
+CORS_ALLOW_CREDENTIALS = True                       # This is REQUIRED for session login   without this csrf token will block

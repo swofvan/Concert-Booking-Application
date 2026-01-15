@@ -1,101 +1,99 @@
 import axios from "axios";
 import { useState } from "react";
-import { useNavigate, Links, Link } from "react-router-dom";
+import { useNavigate,Link, data } from "react-router-dom";
 
 import Navbar from "../Navbar";
 import "../../App.css"
 
-function isNumeric(str) {
-    return /^\d+$/.test(str);
-}
+// function isNumeric(str) {
+//     return /^\d+$/.test(str);
+// }
 
-function isTooSimilar(password, name, email) {
-    const lower = password.toLowerCase();
-    return (
-        lower.includes(name.toLowerCase()) ||
-        lower.includes(email.split("@")[0].toLowerCase())
-    );
-}
+// function isTooSimilar(password, name, email) {
+//     const lower = password.toLowerCase();
+//     return (
+//         lower.includes(name.toLowerCase()) ||
+//         lower.includes(email.split("@")[0].toLowerCase())
+//     );
+// }
 
 function Register() {
 
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [passwordConf, setPasswordConf] = useState('');
+    const [password2, setPassword2] = useState('');
 
     const [errorMessage, setErrorMessage] = useState('');
 
     const navigate = useNavigate();
-
-    setErrorMessage("");
-
-    // Name validation
-    if (name.trim().length < 3) {
-        setErrorMessage("Name must contain at least 3 characters");
-        return;
-    }
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        setErrorMessage("Please enter a valid email address");
-        return;
-    }
-
-    // Password length
-    if (password.length < 8) {
-        setErrorMessage("Password must contain at least 8 characters");
-        return;
-    }
-
-    if (/^\d+$/.test(password)) {
-        setErrorMessage("Password cannot be entirely numeric");
-        return;
-    }
-
-    if (password.toLowerCase().includes(name.toLowerCase())) {
-        setErrorMessage("Password too similar to name");
-        return;
-    }
-
-    // Confirm password
-    if (password !== passwordConf) {
-        setErrorMessage("Passwords do not match");
-        return;
-    }
 
 
     function registerUser(e) {
         
         e.preventDefault();
 
-        const user = {
-            name : name,
-            email : email,
-            password : password,
-            confirm_password : passwordConf
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (name.trim().length < 3) {
+            setErrorMessage("Name must contain at least 3 characters");
+            return;
+        }
+
+        if (!emailRegex.test(email)) {
+            setErrorMessage("Please enter a valid email address");
+            return;
+        }
+
+        if (password.length < 8) {
+            setErrorMessage("Password must contain at least 8 characters");
+            return;
+        }
+
+        if (/^\d+$/.test(password)) {
+            setErrorMessage("Password cannot be entirely numeric");
+            return;
+        }
+
+        if (password.toLowerCase().includes(name.toLowerCase())) {
+            setErrorMessage("Password too similar to name");
+            return;
+        }
+
+        if (password !== password2) {
+            setErrorMessage("Passwords do not match");
+            return;
         }
 
         setErrorMessage("");
-        
 
+        const user = {
+            username: name,
+            email: email,
+            password1: password,
+            password2: password2
+        };
 
-        axios.post('http://127.0.0.1:8000/register',user)
+        axios.post("http://127.0.0.1:8000/register/",user,{
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+
             .then(response => {
                 setErrorMessage('');
                 alert(`${name} registered successfully`);
-                navigate('/');
+                navigate('/login');
             })
             .catch(error => {
-                if(error.response.data.errors) {
-                    setErrorMessage(Object.values(error.response.data.errors).join(''))
+                if (error.response?.data) {
+                    let errors = error.response.data;
+                    setErrorMessage(Object.values(errors).join(''));
+                } else {
+                    setErrorMessage("Failed to connect to server");
                 }
-                else{
-                    setErrorMessage("Failed to connect to server")
-                }
-            })
-    }
+            });
+}
 
     return (
 
@@ -106,13 +104,19 @@ function Register() {
             <div className="container" id="concertlist">
                 <div className='row mt-5'>
                     <div className='col-md-6 offset-3' id="registerformbg">
+                        
+                        <Link to={'/'} className="btn btn-outline-secondary">
+                            <i class="bi bi-house-door"></i>
+                        </Link>
 
-                        <form>
+                        <h2 className="text-center">Signup</h2>
+                        <form method="POST" className="mt-4" onSubmit={registerUser}>
                             {errorMessage?<div className="alert alert-danger">{errorMessage}</div>:''}
                             <div className="form-group">
                                 <input type="text"
                                 className="form-control"
                                 value={name}
+                                name="name"
                                 placeholder="Your Name"
                                 onInput={(event)=>setName(event.target.value)}
                                 />
@@ -121,6 +125,7 @@ function Register() {
                                 <input type="email"
                                 className="form-control"
                                 value={email}
+
                                 onInput={(event)=>setEmail(event.target.value)}
                                 placeholder="Email id"
                                 />
@@ -136,23 +141,25 @@ function Register() {
                             <div className="form-group">
                                 <input type="password"
                                 className="form-control"
-                                value={passwordConf}
-                                onInput={(event)=>setPasswordConf(event.target.value)}
+                                value={password2}
+                                onInput={(event)=>setPassword2(event.target.value)}
                                 placeholder="Confirm Password"
                                 />
                             </div>
                             <div className="form-group">
                                 <button
                                     type="submit"
-                                    className="btn btn-primary float-right"
-                                    onClick={registerUser}>
+                                    className="btn btn-primary btn-block">
                                     SignUp
                                     </button>
                             </div>
-
-                            <Link to={'/'} className="btn btn-secondary">Cancel</Link>
                             
                         </form>
+
+                        <Link to={'/login'} className="text-primary"
+                            style={{ textAlign: 'center', display: 'block', marginTop: '10px' }}>
+                            Are you already registered? <b>Login</b>
+                        </Link>
                         
                     </div>
                 </div>
