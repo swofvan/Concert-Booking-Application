@@ -1,17 +1,16 @@
 from django.shortcuts import render, redirect
-from .forms import ConcertForm
-from .models import Concert
+
+from .forms import ConcertForm, BookingForm
+from .models import Concert, Booking
 
 from django.db.models import Q     # for search / filter
 
 from rest_framework.response import Response
-from .serializers import ConcertSerializer
+from .serializers import ConcertSerializer, BookingSerializer
 
-# from .serializers import RegisterSerializer
 from rest_framework import status
 
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework.authtoken.models import Token
 
 from rest_framework.decorators import api_view, permission_classes, authentication_classes 
 from rest_framework.permissions import AllowAny
@@ -21,9 +20,22 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticated
 
+# from rest_framework.authtoken.models import Token
+
+
+from django.shortcuts import get_object_or_404
+from django.db import transaction
+
 # Create your views here.
 
-# --------------------------------------------------------------------------------------------------------------   view
+# --------------------------------------------------------------------------------------------------------------  admin check
+
+# This check ensures only staff/admins can access these views
+
+# def is_admin(user):
+#     return user.is_authenticated and user.is_staff
+
+# --------------------------------------------------------------------------------------------------------------   admin view
 
 def concertlist(request):
 
@@ -173,16 +185,20 @@ def user_login(request):
 
     login(request, user)
 
+    # token, _ = Token.objects.get_or_create(user=user)
+
     return Response(
         {
             "message": "Login successful",
             "username": user.username,
-            "email": user.email
+            "email": user.email,
+            "is_admin" : user.is_staff or user.is_superuser,    #----------------------------- Admin / user
+            # "token" : token.key
         },
         status=status.HTTP_200_OK
     )
 
-# -------------------------------------------------------------------------------------------------------------- Login
+# -------------------------------------------------------------------------------------------------------------- Logout
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -192,3 +208,68 @@ def user_logout(request):
         {"message": "Logout successful"},
         status=status.HTTP_200_OK
     )
+
+# -------------------------------------------------------------------------------------------------------------- User list for admin
+
+
+#  @staff_member_required = ensures only staff/admin users can access this page.
+#  login_url='/login/' = ensures non-admins are redirected to your React login page instead of Django admin login.
+
+# @staff_member_required(login_url='/login/')
+# @user_passes_test(is_admin, login_url='/login/')
+# def users_list(request):
+#     users = User.objects.all().order_by('-date_joined')
+
+#     query = request.GET.get('q')
+
+#     if query:
+#         users = users.filter(
+#             Q(username__icontains=query) |
+#             Q(email__icontains=query)
+#         )
+
+#     return render(request, 'user_list.html', {
+#         'users': users
+#     })
+
+
+# ------------------------------------------------------------------------------------------------------ Booking
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_booking(request):
+    
+    form = BookingForm(request.data)
+
+    if not form.is_valid():
+        return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    concert = form.cleaned_data['show']
+    tickets = form.cleaned_data['tickets']
+
+    if tickets > 3:
+        return Response(
+            {"error": "Maximum 3 tickets allowed"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    if concert.total_tickets < tickets:
+        return Response(
+            {"error": "Not enough tickets available"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    total_price = concert.price * tickets
+
+    booking = Booking.objects.create(
+        user=request.user,
+        show=concert,
+        tickets=tickets,
+        total_price=total_price,
+        is_confirmed=False
+    )
+
+    serializer = BookingSerializer(booking, context={
+        'request': request
+        })
+    return Response(serializer.data, status=status.HTTP_201_CREATED)

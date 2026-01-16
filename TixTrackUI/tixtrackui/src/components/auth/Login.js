@@ -44,10 +44,18 @@ function Login() {
             const user = {
                 email: response.data.email,
                 username: response.data.username,
+                is_admin: response.data.is_admin
             };
 
             dispatch(setUser(user));   // ------------------------  redux + localStorage
-            navigate("/");  
+
+            if (user.is_admin) {                                        // ------------------------  admin or user
+                window.location.href = "http://127.0.0.1:8000/";
+            }   
+            else {
+                navigate("/");
+            }
+  
         })
         .catch(error => {
             if (error.response.data.errors) {

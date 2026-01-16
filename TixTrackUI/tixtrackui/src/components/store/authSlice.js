@@ -47,7 +47,7 @@ export const authSlice = createSlice({
             state.user = user ? JSON.parse(user) : null;
         }
     }
-});
+}); 
 
 export const {
     setUser,

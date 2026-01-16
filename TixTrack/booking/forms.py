@@ -1,11 +1,10 @@
 from django import forms
-from .models import Concert
+from .models import Concert, Booking
 
-# from .models import UserProfile
-from django.core.exceptions import ValidationError
 
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+
 
 class ConcertForm(forms.ModelForm):
     class Meta:
@@ -25,13 +24,7 @@ class ConcertForm(forms.ModelForm):
             'image': forms.FileInput(attrs={'class': 'form-control-file'}),
         }
 
-
-# class RegisterForm(forms.ModelForm):
-#     confirmpassword = forms.CharField(min_length=8)
-
-#     class Meta:
-#         model = UserProfile
-#         fields = '__all__'
+#----------------------------------------------------------------------------------------------------------------  register
 
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
@@ -51,4 +44,24 @@ class RegisterForm(UserCreationForm):
             user.save()
         return user
 
-        
+#----------------------------------------------------------------------------------------------------------------  Booking
+
+
+class BookingForm(forms.ModelForm):
+    class Meta:
+        model = Booking
+        fields = ['show', 'tickets']
+
+        widgets = {
+            'show': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'tickets': forms.NumberInput(attrs={
+                'placeholder': 'Number of Tickets',
+                'class': 'form-control',
+                'min': 1,
+            }),
+        }
+
+
+#----------------------------------------------------------------------------------------------------------------  register

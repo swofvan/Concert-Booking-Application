@@ -152,3 +152,5 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True                       # This is REQUIRED for session login   without this csrf token will block
+
+LOGIN_URL = '/login/'

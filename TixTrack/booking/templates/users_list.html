@@ -1,0 +1,90 @@
+<!-- {% extends 'layout/app-layout.html'%}
+{% block content %}
+
+<div class="listfull">
+
+            <div class="row bg-white"
+                    style="min-height: 104px; border-radius: 0px 0px 12px 12px;">
+
+                <div class="col">
+                    <div class="search-wrapper">
+                        <form method="get">
+                            <div class="search-box">
+                                <span class="search-icon">
+                                    <i class="bi bi-search"></i>
+                                </span>
+                                <input 
+                                    type="text"
+                                    name="q"
+                                    class="search-input"
+                                    placeholder="Search"
+                                    value="{{ request.GET.q }}"
+                                >
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div> -->
+
+
+
+<!-- -------------------------------------------------------------------------------------------------------------------- -->
+
+<!-- 
+            <div class="row  bg-white" style="margin-top: 20px ; border-radius: 12px;">
+                <div class="col">
+                
+            
+            <h1 style="color: #1E052F; font-size: 25px; margin-top: 50px; display: inline-block;">Users</h1>
+  
+            <table class="table" style="margin-top: 20px;">
+                <thead>
+                    <tr>
+                        <th scope="col">User Id</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Admin</th>
+                        <th scope="col">Date Joined</th>
+                        <th scope="col"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            {% if user.is_staff %}
+                                Yes
+                            {% else %}
+                                No
+                            {% endif %}
+                        </td>
+                        <td>{{ user.date_joined }}</td>
+
+                    <td>
+                        <a href="" class="text-danger">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </td>
+
+                    </tr>
+
+                    {% empty %} 
+                                     if user is empty  --> 
+                    <!-- <tr>
+                        <td colspan="5">No users found</td>
+                    </tr>
+                    
+                    {% endfor %}
+                </tbody>
+                </table>
+
+                </div>
+            </div>
+    
+    </div>
+
+
+{% endblock %} -->

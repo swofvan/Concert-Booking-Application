@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Concert
+from .models import Concert, Booking
 
 # from .models import UserProfile
 from django.contrib.auth.hashers import make_password
@@ -19,14 +19,34 @@ class ConcertSerializer(serializers.ModelSerializer):
         return None
     
 
-# class RegisterSerializer(serializers.ModelSerializer):
-#     password = serializers.CharField(min_length=8, write_only=True)       #It means the user can send a password to the server, but the server will never send that password back in a JSON response. It stays hidden.
+# ---------------------------------------------------------------------------------------  Booking
 
-#     class Meta:
-#         model = UserProfile
-#         fields = '__all__'
+class BookingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Booking
+        fields = '__all__'
+        read_only_fields = ['user', 'total_price', 'is_confirmed', 'created_at']
 
-#         def create(self, validated_data):                                          # Creates user
-#             validated_data.pop('confirm_password')
-#             validated_data['password'] = make_password(validated_data['password'])   # HASH PASSWORD HERE
-#             return UserProfile.objects.create(**validated_data)
+    def validate_tickets(self, value):
+        if value > 3:
+            raise serializers.ValidationError("Maximum 3 tickets allowed per booking")
+        if value < 1:
+            raise serializers.ValidationError("At least 1 ticket required")
+        return value
+
+    def create(self, validated_data):
+        show = validated_data['show']
+        tickets = validated_data['tickets']
+        
+        if show.available_tickets < tickets:
+            raise serializers.ValidationError("Not enough tickets available")
+
+        total_price = show.price * tickets
+
+        booking = Booking.objects.create(
+            user=self.context['request'].user,
+            show=show,
+            tickets=tickets,
+            total_price=total_price
+        )
+        return booking

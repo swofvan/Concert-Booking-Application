@@ -1,8 +1,6 @@
-import axios from "axios";
-import Navbar from "./Navbar";
 
-import { useEffect, useState } from "react";
-import { Link, useParams, useLocation } from "react-router-dom";
+import Navbar from "./Navbar";
+import {useParams, useLocation, Link } from "react-router-dom";
 
 
 function View_Concert() {
@@ -60,20 +58,19 @@ function View_Concert() {
                                 <li className="list-group-item"><i className="bi bi-bookmark"></i> &nbsp; {concert.category}</li>
                                 <li className="list-group-item"><i className="bi bi-geo-alt"></i> &nbsp; {concert.venue}</li>
                                 <li className="list-group-item"><i className="bi bi-calendar3"></i> &nbsp; {new Date(concert.date_time).toLocaleString()}</li>
-                                {/* <li className="list-group-item"><i className="bi bi-cash-coin"></i> &nbsp; ₹ {concert.price}</li> */}
                                 <li className="list-group-item"><i className="bi bi-ticket-detailed"></i> &nbsp; {concert.total_tickets}</li>
                             </ul>
                             <hr/>
                             
                             <h3 className="d-inline"> &nbsp; ₹{concert.price}</h3>
-                            <button className="btn text-white float-right" style={{backgroundColor: '#1E052F'}}>Book Tickets</button>
-
-                            {/* <p className="card-text">{concert.artists}</p>
-                            <p className="card-text">{concert.category}</p>
-                            <p className="card-text">{concert.venue}</p>
-                            <p className="card-text">{new Date(concert.date_time).toLocaleString()}</p>
-                            <p className="card-text">{concert.total_tickets}</p>
-                            <p className="card-text">{concert.price}</p> */}
+                            {/* <Link to={`/booking/${concert.id}`} className="btn text-white float-right" style={{backgroundColor: '#1E052F'}}>Book Tickets</Link> */}
+                            <Link 
+                                to={`/booking/${concert.id}`} 
+                                state={{ concert }}                          // pass the object
+                                className="btn text-white float-right" 
+                                style={{backgroundColor: '#1E052F'}}>
+                                    Book Tickets
+                                </Link>
                         </div>
                     </div>
 

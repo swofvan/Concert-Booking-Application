@@ -5,18 +5,6 @@ import { useNavigate,Link, data } from "react-router-dom";
 import Navbar from "../Navbar";
 import "../../App.css"
 
-// function isNumeric(str) {
-//     return /^\d+$/.test(str);
-// }
-
-// function isTooSimilar(password, name, email) {
-//     const lower = password.toLowerCase();
-//     return (
-//         lower.includes(name.toLowerCase()) ||
-//         lower.includes(email.split("@")[0].toLowerCase())
-//     );
-// }
-
 function Register() {
 
     const [name, setName] = useState('');

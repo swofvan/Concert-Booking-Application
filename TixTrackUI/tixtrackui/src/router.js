@@ -6,6 +6,8 @@ import View_Concert from "./components/View_Concert";
 import Register from "./components/auth/register";
 import Login from "./components/auth/Login";
 
+import BookTickets from "./components/Booking";
+
 const router = createBrowserRouter([
     { path: '', element: <App/> },
     { path: 'concerts', element: <Concert_list/>, },
@@ -13,6 +15,8 @@ const router = createBrowserRouter([
 
     { path: 'register', element: <Register/>},
     { path: 'login', element: <Login/> },
+
+    { path: '/booking/:concertid', element: <BookTickets/> },
 ]);
 
 export default router;

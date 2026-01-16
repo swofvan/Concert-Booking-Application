@@ -83,7 +83,7 @@ function Navbar() {
                                 border: 'none'
                             }}
                         >
-                            <i class="bi bi-person-fill"></i>
+                            <i className="bi bi-person-fill"></i>
                         </Link>
 
                     ) : (
@@ -103,7 +103,7 @@ function Navbar() {
                                 fontSize: '20px'
                             }}
                         >
-                            <i class="bi bi-person"></i>
+                            <i className="bi bi-person"></i>
                         </Link>
                     )}
 

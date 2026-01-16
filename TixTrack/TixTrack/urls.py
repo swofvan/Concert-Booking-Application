@@ -29,11 +29,15 @@ urlpatterns = [
     path('edit_concerts/<int:pk>/', views.edit_concert, name='edit_concert'),
     path('delete_concert/<int:pk>/', views.delete_concert, name='delete_concert'),
 
+    # path('users_list', views.users_list, name='users_list'),
+
     path('api/concerts', views.concert_list_api, name='concert_list_api'),
 
     path('register/', views.register, name='register'),
     path('login/', views.user_login, name='login'),
     path('logout/', views.user_logout, name='logout'),
+
+    path('create_booking/', views.create_booking, name='booking'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
