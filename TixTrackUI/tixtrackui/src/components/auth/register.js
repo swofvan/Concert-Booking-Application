@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useState } from "react";
-import { useNavigate,Link, data } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 import Navbar from "../Navbar";
 import "../../App.css"
@@ -74,10 +74,10 @@ function Register() {
                 navigate('/login');
             })
             .catch(error => {
-                if (error.response?.data) {
-                    let errors = error.response.data;
-                    setErrorMessage(Object.values(errors).join(''));
-                } else {
+                if (error.response.data) {
+                    setErrorMessage(Object.values(error.response.data).join(''));
+                }
+                else {
                     setErrorMessage("Failed to connect to server");
                 }
             });

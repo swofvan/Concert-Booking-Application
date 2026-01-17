@@ -21,6 +21,9 @@ from booking import views
 
 from django.conf import settings
 from django.conf.urls.static import static
+from django.urls import path
+
+from rest_framework_simplejwt.views import (TokenObtainPairView, TokenRefreshView,)
 
 urlpatterns = [
     # path('admin/', admin.site.urls),
@@ -37,6 +40,9 @@ urlpatterns = [
     path('login/', views.user_login, name='login'),
     path('logout/', views.user_logout, name='logout'),
 
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),   # ----------------- JWT LOGIN
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    
     path('create_booking/', views.create_booking, name='booking'),
 ]
 

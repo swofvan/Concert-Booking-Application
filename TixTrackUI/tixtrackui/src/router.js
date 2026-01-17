@@ -16,7 +16,7 @@ const router = createBrowserRouter([
     { path: 'register', element: <Register/>},
     { path: 'login', element: <Login/> },
 
-    { path: '/booking/:concertid', element: <BookTickets/> },
+    { path: '/booking/:id', element: <BookTickets/> },
 ]);
 
 export default router;

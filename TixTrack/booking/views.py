@@ -20,8 +20,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticated
 
-# from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.models import Token
 
+
+from rest_framework.authentication import SessionAuthentication
 
 from django.shortcuts import get_object_or_404
 from django.db import transaction
@@ -59,6 +61,7 @@ def concertlist(request):
 # --------------------------------------------------------------------------------------------------------------   api view
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def concert_list_api(request):
     query = request.GET.get('q')
     concerts = Concert.objects.all()
@@ -151,9 +154,9 @@ def register(request):
 
 # -------------------------------------------------------------------------------------------------------------- Login
 
-@csrf_exempt
+# @csrf_exempt -----------------------------------------------   DRF Token generation,  Token response 
 @api_view(['POST'])
-@authentication_classes([])
+# @authentication_classes([])
 @permission_classes([AllowAny])
 def user_login(request):
 
@@ -183,9 +186,9 @@ def user_login(request):
             status=status.HTTP_401_UNAUTHORIZED
         )
 
-    login(request, user)
+    # login(request, user)
 
-    # token, _ = Token.objects.get_or_create(user=user)
+    token, _ = Token.objects.get_or_create(user=user)
 
     return Response(
         {
@@ -203,7 +206,8 @@ def user_login(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def user_logout(request):
-    logout(request)
+    # logout(request)
+    request.user.auth_token.delete()
     return Response(
         {"message": "Logout successful"},
         status=status.HTTP_200_OK
@@ -235,41 +239,36 @@ def user_logout(request):
 
 # ------------------------------------------------------------------------------------------------------ Booking
 
+# @csrf_exempt
 @api_view(['POST'])
+# @authentication_classes([SessionAuthentication])
 @permission_classes([IsAuthenticated])
 def create_booking(request):
     
-    form = BookingForm(request.data)
+    form = BookingForm(request.POST)
 
     if not form.is_valid():
-        return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+        concert = form.cleaned_data['show']
+        tickets = form.cleaned_data['tickets']
 
-    concert = form.cleaned_data['show']
-    tickets = form.cleaned_data['tickets']
+        if concert.total_tickets < tickets:
+            return Response(
+                {"error": "Not enough tickets available"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-    if tickets > 3:
-        return Response(
-            {"error": "Maximum 3 tickets allowed"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        total_price = concert.price * tickets
 
-    if concert.total_tickets < tickets:
-        return Response(
-            {"error": "Not enough tickets available"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        booking = form.save(commit=False)
+        booking.user = request.user
+        booking.total_price = total_price
+        booking.is_confirmed = False
+        booking.save()
+        
+        serializer = BookingSerializer(booking,
+            context={
+                'request': request
+            })
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    total_price = concert.price * tickets
-
-    booking = Booking.objects.create(
-        user=request.user,
-        show=concert,
-        tickets=tickets,
-        total_price=total_price,
-        is_confirmed=False
-    )
-
-    serializer = BookingSerializer(booking, context={
-        'request': request
-        })
-    return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)

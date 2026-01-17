@@ -18,7 +18,7 @@ function Login() {
     function loginUser(e) {
 
         e.preventDefault();
-        
+
         setErrorMessage('');
 
         if (!email || !password) {
@@ -31,23 +31,25 @@ function Login() {
             password: password
         },
         {
-            withCredentials: true
+            headers: {
+                "Content-Type": "application/json"
+            }
         }
-        // { headers: {
-        //     Authorization: `Bearer ${user.token}`} }
+        // {
+        //     withCredentials: true
+        // }
         )
         
         .then(response => {
-            
-            setErrorMessage('');
-
             const user = {
                 email: response.data.email,
                 username: response.data.username,
-                is_admin: response.data.is_admin
+                is_admin: response.data.is_admin,
+                token: response.data.token
             };
 
             dispatch(setUser(user));   // ------------------------  redux + localStorage
+             localStorage.setItem('token', user.token); // -------------------------------- persist token
 
             if (user.is_admin) {                                        // ------------------------  admin or user
                 window.location.href = "http://127.0.0.1:8000/";
