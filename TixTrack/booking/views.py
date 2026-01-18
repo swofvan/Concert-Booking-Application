@@ -138,7 +138,7 @@ def delete_concert(request, pk):
 @permission_classes([AllowAny])
 def register(request):
     
-    form = RegisterForm(data=request.data)   # IMPORTANT: use request.data (JSON-safe)
+    form = RegisterForm(data=request.data)
 
     if form.is_valid():
         form.save()
@@ -212,30 +212,6 @@ def user_logout(request):
         {"message": "Logout successful"},
         status=status.HTTP_200_OK
     )
-
-# -------------------------------------------------------------------------------------------------------------- User list for admin
-
-
-#  @staff_member_required = ensures only staff/admin users can access this page.
-#  login_url='/login/' = ensures non-admins are redirected to your React login page instead of Django admin login.
-
-# @staff_member_required(login_url='/login/')
-# @user_passes_test(is_admin, login_url='/login/')
-# def users_list(request):
-#     users = User.objects.all().order_by('-date_joined')
-
-#     query = request.GET.get('q')
-
-#     if query:
-#         users = users.filter(
-#             Q(username__icontains=query) |
-#             Q(email__icontains=query)
-#         )
-
-#     return render(request, 'user_list.html', {
-#         'users': users
-#     })
-
 
 # ------------------------------------------------------------------------------------------------------ Booking
 
