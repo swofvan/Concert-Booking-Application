@@ -34,12 +34,8 @@ function Login() {
             headers: {
                 "Content-Type": "application/json"
             }
-        }
-        // {
-        //     withCredentials: true
-        // }
-        )
-        
+        })
+
         .then(response => {
             const user = {
                 email: response.data.email,
@@ -49,7 +45,7 @@ function Login() {
             };
 
             dispatch(setUser(user));   // ------------------------  redux + localStorage
-             localStorage.setItem('token', user.token); // -------------------------------- persist token
+            localStorage.setItem('token', user.token); // -------------------------------- persist token
 
             if (user.is_admin) {                                        // ------------------------  admin or user
                 window.location.href = "http://127.0.0.1:8000/";

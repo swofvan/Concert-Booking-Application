@@ -1,9 +1,7 @@
 import { NavLink, Link, useNavigate } from "react-router-dom";
-
 import { useDispatch, useSelector } from "react-redux";
 
 import logo from "../images/TixTrack_Logo.svg";
-
 import axios from "axios";
 
 import { removeUser } from "./store/authSlice";
@@ -13,17 +11,24 @@ import "../App.css"
 
 function Navbar() {
 
-    const user = useSelector(state => state.auth.user);
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
+    
+    const user = useSelector(state => state.auth.user);
+    const token = user?.token;   // ------------------------------- get token from redux store
+
     function logout() {
+        
+
         axios.post('http://127.0.0.1:8000/logout/', {}, {
-            withCredentials : true 
+            headers: {
+                Authorization: `Token ${token}`,
+            },
         })
 
         .finally(() => {     
-            dispatch(removeUser());    //  redux + localStorage clear
+            dispatch(removeUser());    // -------------------------------- redux + localStorage clear
             navigate('/login');        
         });
     }

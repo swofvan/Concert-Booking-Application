@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 
-from .forms import ConcertForm, BookingForm
+from .forms import ConcertForm
 from .models import Concert, Booking
 
 from django.db.models import Q     # for search / filter
@@ -13,20 +13,19 @@ from rest_framework import status
 from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework.decorators import api_view, permission_classes, authentication_classes 
-from rest_framework.permissions import AllowAny
-from .forms import RegisterForm
+from rest_framework.permissions import AllowAny,IsAuthenticated
+from .forms import RegisterForm, BookingForm
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from rest_framework.permissions import IsAuthenticated
-
-from rest_framework.authtoken.models import Token
-
 
 from rest_framework.authentication import SessionAuthentication
 
 from django.shortcuts import get_object_or_404
-from django.db import transaction
+
+from django.contrib.auth.decorators import login_required
+
+from django.contrib.admin.views.decorators import staff_member_required
 
 # Create your views here.
 
@@ -79,6 +78,18 @@ def concert_list_api(request):
         many=True,
         context={'request': request}
     )
+    return Response(serializer.data)
+
+
+# --------------------------------------------------------------------------------------------------------------   consert detail api view
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def concert_detail(request, id):
+    concert = get_object_or_404(Concert, id=id)
+    serializer = ConcertSerializer(concert, context={
+        'request': request
+        })
     return Response(serializer.data)
 
 # --------------------------------------------------------------------------------------------------------------   Create
@@ -154,79 +165,121 @@ def register(request):
 
 # -------------------------------------------------------------------------------------------------------------- Login
 
-# @csrf_exempt -----------------------------------------------   DRF Token generation,  Token response 
+# @api_view(['POST'])
+# @permission_classes([AllowAny])
+# def user_login(request):
+
+#     email = request.data.get('email')
+#     password = request.data.get('password')
+
+#     if not email or not password:
+#         return Response(
+#             {"error": "email and password are required"},
+#             status=status.HTTP_400_BAD_REQUEST
+#         )
+    
+#     try:
+#         user = User.objects.get(email=email)
+    
+#     except User.DoesNotExist:
+#         return Response(
+#             {"error": "Invalid email or password"},
+#             status=status.HTTP_401_UNAUTHORIZED
+#         )
+
+#     user = authenticate(username=user.username, password=password)
+
+#     if user is None:
+#         return Response(
+#             {"error": "Invalid email or password"},
+#             status=status.HTTP_401_UNAUTHORIZED
+#         )
+
+#     token, _ = Token.objects.get_or_create(user=user)
+
+#     return Response(
+#         {
+#             "message": "Login successful",
+#             "username": user.username,
+#             "email": user.email,
+#             "is_admin" : user.is_staff or user.is_superuser,    #----------------------------- Admin / user
+#             "token" : token.key
+#         },
+#         status=status.HTTP_200_OK
+#     )
+
 @api_view(['POST'])
-# @authentication_classes([])
 @permission_classes([AllowAny])
 def user_login(request):
-
     email = request.data.get('email')
     password = request.data.get('password')
 
     if not email or not password:
-        return Response(
-            {"error": "email and password are required"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
+        return Response({"error": "Email and password are required"}, status=400)
+
     try:
-        user = User.objects.get(email=email)
-    
+        user_obj = User.objects.get(email=email)
     except User.DoesNotExist:
-        return Response(
-            {"error": "Invalid email or password"},
-            status=status.HTTP_401_UNAUTHORIZED
-        )
+        return Response({"error": "Invalid email or password"}, status=401)
 
-    user = authenticate(username=user.username, password=password)
-
+    user = authenticate(username=user_obj.username, password=password)
     if user is None:
-        return Response(
-            {"error": "Invalid email or password"},
-            status=status.HTTP_401_UNAUTHORIZED
-        )
+        return Response({"error": "Invalid email or password"}, status=401)
+    
+    login(request, user)  # Log in the user for Django session
 
-    # login(request, user)
+    if user.is_staff or user.is_superuser:
+        redirect_url = '/bookings_list/'
+    else:
+        redirect_url = '/concertlist/'
 
-    token, _ = Token.objects.get_or_create(user=user)
-
-    return Response(
-        {
-            "message": "Login successful",
-            "username": user.username,
-            "email": user.email,
-            "is_admin" : user.is_staff or user.is_superuser,    #----------------------------- Admin / user
-            # "token" : token.key
-        },
-        status=status.HTTP_200_OK
-    )
+    return Response({
+        "message": "Login successful",
+        "username": user.username,
+        "email": user.email,
+        "is_admin": user.is_staff or user.is_superuser,
+        "redirect_url": redirect_url
+    }, status=200)
 
 # -------------------------------------------------------------------------------------------------------------- Logout
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def user_logout(request):
+#     request.user.auth_token.delete()
+#     return Response(
+#         {"message": "Logout successful"},
+#         status=status.HTTP_200_OK
+#     )
+
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+@login_required
 def user_logout(request):
-    # logout(request)
-    request.user.auth_token.delete()
-    return Response(
-        {"message": "Logout successful"},
-        status=status.HTTP_200_OK
-    )
+    logout(request)  # ends the session
+    return redirect('/login/')
+    # return Response({"message": "Logout successful"}, status=200)
 
 # ------------------------------------------------------------------------------------------------------ Booking
 
-# @csrf_exempt
 @api_view(['POST'])
-# @authentication_classes([SessionAuthentication])
 @permission_classes([IsAuthenticated])
 def create_booking(request):
+
+    print("USER:", request.user)
+    print("AUTH:", request.auth)
     
     form = BookingForm(request.POST)
-
     if not form.is_valid():
-        concert = form.cleaned_data['show']
-        tickets = form.cleaned_data['tickets']
+        concert_id = request.data.get('show_id')
+        tickets = int(request.data.get('tickets', 0))
+        concert = get_object_or_404(Concert, id=concert_id)
 
+        if tickets < 1 or tickets > 3:
+            return Response(
+                {"error": "You can book minimum 1 and maximum 3 tickets"},
+                status=status.HTTP_400_BAD_REQUEST
+            )  
         if concert.total_tickets < tickets:
             return Response(
                 {"error": "Not enough tickets available"},
@@ -235,16 +288,57 @@ def create_booking(request):
 
         total_price = concert.price * tickets
 
-        booking = form.save(commit=False)
-        booking.user = request.user
+        booking = Booking.objects.create(
+            user=request.user,
+            show=concert,
+            tickets=tickets,
+            total_price=total_price
+        )
         booking.total_price = total_price
         booking.is_confirmed = False
         booking.save()
+        Concert.objects.filter(id=concert.id).update(
+            total_tickets=concert.total_tickets - tickets
+        )
         
+
+
         serializer = BookingSerializer(booking,
             context={
                 'request': request
             })
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+
+# -------------------------------------------------------------------------------------------------------------- Booking List
+
+# @staff_member_required
+# def booking_list(request):
+    
+#     bookings = (
+#         Booking.objects
+#         .select_related('user', 'concert')
+#         .order_by('-id')
+#     )
+#     return render(request, 'bookings_list.html', {
+#         'bookings': bookings
+#     })
+
+# @staff_member_required
+# def booking_list(request):
+#     bookings = Booking.objects.select_related('user', 'concert').all().order_by('-id')
+#     return render(request, 'bookings_list.html', {
+#         'bookings': bookings
+#         })
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def booking_list(request, id):
+    bookings = get_object_or_404(Booking, id=id)
+    serializer = BookingSerializer(bookings, context={
+        'request': request
+        })
+    return Response(serializer.data)

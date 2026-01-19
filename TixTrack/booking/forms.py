@@ -50,7 +50,7 @@ class RegisterForm(UserCreationForm):
 class BookingForm(forms.ModelForm):
     class Meta:
         model = Booking
-        fields = ['show', 'tickets']
+        fields = ['user','show', 'tickets']
 
     def clean_tickets(self):                                  # ticket validation moved to FORM
         tickets = self.cleaned_data.get('tickets')

@@ -154,17 +154,19 @@ CSRF_TRUSTED_ORIGINS = [
 CORS_ALLOW_CREDENTIALS = True                       # This is REQUIRED for session login   without this csrf token will block
 
 LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/concertlist/'
+LOGOUT_REDIRECT_URL = '/login/'
 
 
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.SessionAuthentication",
-    ]
-}
+# REST_FRAMEWORK = {
+#     "DEFAULT_AUTHENTICATION_CLASSES": [
+#         "rest_framework.authentication.SessionAuthentication",
+#     ]
+# }
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',     # ----------------------  JWT Authentication
+        # 'rest_framework_simplejwt.authentication.JWTAuthentication',     # ----------------------  JWT Authentication
         'rest_framework.authentication.TokenAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (

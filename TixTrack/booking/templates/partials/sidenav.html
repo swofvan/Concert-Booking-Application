@@ -6,24 +6,24 @@
           <div style="margin-left: 20px;">
             
             <img src="{% static 'TixTrack_Logo_white.svg' %}" alt="logo" style="margin-top: 20px;">
+
+            <!-- {% if request.user.is_staff %} -->
             
             <ul class="nav flex-column" style="margin-top: 50px; gap: 20px; margin-left: 10px;">
 
-                {% with request.resolver_match.url_name as url_name %}
-
-                <li class="nav-item {% if url_name == 'concertlist' %}active{% endif %}">
+                <li class="nav-item">
                     <i class="bi bi-house-fill text-white"></i>
                     <a class="nav-link text-white" href="{% url 'concertlist' %}" style="margin-top: -31px; margin-left: 20px;">Concerts</a>
                 </li>
 
-                <li class="nav-item {% if url_name == 'add_concerts' %}active{% endif %}">
+                <li class="nav-item">
                     <i class="bi bi-plus-circle text-white"></i>
                     <a class="nav-link text-white" href="{% url 'add_concerts' %}" style="margin-top: -31px; margin-left: 20px;">Add Concerts</a>
                 </li>
 
                 <li class="nav-item">
                     <i class="bi bi-ticket-detailed-fill text-white"></i>
-                    <a class="nav-link text-white" href="#" style="margin-top: -31px; margin-left: 20px;">Bookings</a>
+                    <a class="nav-link text-white" href="{% url 'bookings_list' %}" style="margin-top: -31px; margin-left: 20px;">Bookings</a>
                 </li>
 
                 <li class="nav-item">
@@ -31,7 +31,28 @@
                     <a class="nav-link text-white" href="#" style="margin-top: -31px; margin-left: 20px;">Users</a>
                 </li>
 
-                {% endwith %}
+                <li class="nav-item">
+                    <i class="bi bi-box-arrow-up-right text-white"></i>
+                    <a class="nav-link text-white"
+                    href="http://localhost:3000/concerts"
+                    style="margin-top: -31px; margin-left: 20px;">
+                    User Side
+                    </a>
+                </li>
+
+                <span class="nav-item" style="margin-top: 250px;">
+                    <form method="POST" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="btn btn-danger w-75"
+                            style="margin-left: 10px;">
+                        <i class="bi bi-box-arrow-right"></i> 
+                        Logout
+                    </button>
+                    </form>
+                </span>
+
+                <!-- {% endif %} -->
 
             </ul>
             </div>

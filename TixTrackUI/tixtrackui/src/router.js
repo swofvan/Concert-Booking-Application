@@ -10,13 +10,13 @@ import BookTickets from "./components/Booking";
 
 const router = createBrowserRouter([
     { path: '', element: <App/> },
-    { path: 'concerts', element: <Concert_list/>, },
+    { path: 'concerts', element: <Concert_list/> },
     { path: '/concerts/:concertid', element: <View_Concert/> },
 
     { path: 'register', element: <Register/>},
     { path: 'login', element: <Login/> },
 
-    { path: '/booking/:id', element: <BookTickets/> },
+    { path: '/booking/:concertId', element: <BookTickets/> },
 ]);
 
 export default router;

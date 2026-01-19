@@ -26,22 +26,27 @@ from django.urls import path
 from rest_framework_simplejwt.views import (TokenObtainPairView, TokenRefreshView,)
 
 urlpatterns = [
-    # path('admin/', admin.site.urls),
+    path('admin/', admin.site.urls),
     path('', views.concertlist, name='concertlist'),
     path('add_concerts/', views.addconcerts, name='add_concerts'),
     path('edit_concerts/<int:pk>/', views.edit_concert, name='edit_concert'),
     path('delete_concert/<int:pk>/', views.delete_concert, name='delete_concert'),
 
     path('api/concerts', views.concert_list_api, name='concert_list_api'),
+    path('api/concerts/<int:id>/', views.concert_detail),
+
 
     path('register/', views.register, name='register'),
     path('login/', views.user_login, name='login'),
     path('logout/', views.user_logout, name='logout'),
+    # path('logout/', LogoutView.as_view(), name='logout')
 
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),   # ----------------- JWT LOGIN
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+    # path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),   # ----------------- JWT LOGIN
+    # path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     
     path('create_booking/', views.create_booking, name='booking'),
+    path('bookings_list/', views.booking_list, name='bookings_list'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)

@@ -1,33 +1,50 @@
 
 import Navbar from "./Navbar";
-import {useParams, useLocation, Link } from "react-router-dom";
+import {useParams, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 
 function View_Concert() {
 
-    // const [concert, setConcert] =useState(null);
-
-    // useEffect(() => {
-    //     axios.get('http://127.0.0.1:8000/api/concerts/' + concertid + '/')
-    //         .then(response => {
-    //             setConcert(response.data);
-    //         },[concertid])
-    //         .catch(error => {
-    //             console.log("Error fetching concerts:", error);
-    //         })
-    // }, [concertid])
-
     const { concertid } = useParams();
-    const location = useLocation();
-    const concert = location.state?.concert;
+    // const location = useLocation();
+    // const concert = location.state?.concert;
 
+    const [concert, setConcert] = useState(null);
+    const [loading, setLoading] = useState(true);
 
+    useEffect(() => {
+        if (!concertid) {
+            setLoading(false);
+            return;
+        }
 
-    if (!concert) {
+        axios.get(`http://127.0.0.1:8000/api/concerts/${concertid}/`)
+            .then((response) => {
+                setConcert(response.data);
+            })
+            .catch((error) => {
+                console.log("Error fetching concert:", error);
+            })
+            .finally(() => {
+                setLoading(false); 
+            });
+    }, [concertid]);
+
+    if (loading) {
         return (
             <div className="text-center mt-5">
                 <div className="spinner-border text-primary"></div>
                 <p>Loading...</p>
+            </div>
+        );
+    }
+
+    if (!concert) {
+        return (
+            <div className="text-center mt-5">
+                <p>Concert not available</p>
             </div>
         );
     }

@@ -1,0 +1,68 @@
+{% extends 'layout/app-layout.html'%}
+{% block content %}
+
+<div class="listfull">
+
+            <div class="row bg-white"
+                    style="min-height: 104px; border-radius: 0px 0px 12px 12px;">
+
+                <div class="col">
+                    <div class="search-wrapper">
+                        <form method="get">
+                            <div class="search-box">
+                                <span class="search-icon">
+                                    <i class="bi bi-search"></i>
+                                </span>
+                                <input 
+                                    type="text"
+                                    name="q"
+                                    class="search-input"
+                                    placeholder="Search"
+                                    value="{{ request.GET.q }}"
+                                >
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+
+
+<!-- -------------------------------------------------------------------------------------------------------------------- -->
+
+            <div class="row  bg-white" style="margin-top: 20px ; border-radius: 12px;">
+                <div class="col">
+                
+            
+            <h1 style="color: #1E052F; font-size: 25px; margin-top: 50px; display: inline-block;">Bookings</h1>
+  
+            <table class="table" style="margin-top: 20px;">
+                <thead>
+                    <tr>
+                    <th scope="col">User</th>
+                    <th scope="col">Concert</th>
+                    <th scope="col">Tickets</th>
+                    <th scope="col">Total Price</th>
+                    <th scope="col">Booking Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in bookings %}
+                    <tr>
+                    <td>{{ booking.user.username }}</td>
+                    <td>{{ booking.concert.concert_name }}</td>
+                    <td>{{ booking.tickets }}</td>
+                    <td>{{ booking.total_price }}</td>
+                    <td>{{ booking.booking_date }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                </table>
+
+                </div>
+            </div>
+    
+    </div>
+
+
+{% endblock %}

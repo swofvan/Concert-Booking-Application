@@ -3,32 +3,40 @@ import Navbar from "./Navbar";
 import "../App.css";
 
 import { useState, useEffect } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 function BookTickets() {
 
     const navigate = useNavigate();
-    const { id } = useParams();  // get ID from URL
-    const location = useLocation();
-    
-    const [concert, setConcert] = useState(
-        location.state.concert || null
-    );
+    const { concertId } = useParams();     // ----------------------------- get ID from URL
+
+    const [concert, setConcert] = useState(null);
 
     const [tickets, setTickets] = useState(0);
     const [loading, setLoading] = useState(false);
+
     const [errorMessage, setErrorMessage] = useState('');
 
-    // useEffect(() => {
+    useEffect(() => {
+        if (!concertId) {
+            setLoading(false);
+            return;
+        }
 
-    //     axios.get(`http://127.0.0.1:8000/api/concerts/${id}`)
-    //         .then((response) => {
-    //             setConcert(response.data);
-    //         })
-    //         .catch((error) => {
-    //             console.log("Error fetching concert:", error);
-    //         });
-    // }, [id, concert]);
+        axios.get(`http://127.0.0.1:8000/api/concerts/${concertId}/`)
+            .then((response) => {
+                setConcert(response.data);
+            })
+            .catch(() => {
+                alert("Failed to load concert details");
+                navigate("/concerts");
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    }, [concertId, navigate]);
+
+
 
      if (!concert) {
         return (
@@ -47,10 +55,8 @@ function BookTickets() {
     const handleTicketChange = (e) => {
         const value = Number(e.target.value);
 
-        if (value > 3) {
-            setErrorMessage("You can book a maximum of 3 tickets only");
-        } else if (value < 1) {
-            setErrorMessage("Minimum 1 ticket is required");
+        if (value < 1 || value > 3) {
+            setErrorMessage("You can book between 1 and 3 tickets only");
         } else {
             setErrorMessage("");
         }
@@ -58,40 +64,45 @@ function BookTickets() {
         setTickets(value);
     };
 
-    const bookTickets = () => {
-
 // ------------------------------------------------------- Validation before API call (Safety)
+
+    const bookTickets = () => {
 
         if (tickets < 1 || tickets > 3) {
             setErrorMessage("Please select between 1 and 3 tickets");
             return;
         }
 
-         setLoading(true);
-
         const token = localStorage.getItem("token");
+
+        if (!token) {
+            alert("Please login to book tickets");
+            navigate("/login");
+            return;
+        }
+
+        setLoading(true);
 
         axios.post(
             "http://127.0.0.1:8000/create_booking/",
             {
-                show: concert.id,
+                show_id: concert.id,
                 tickets: tickets
             },
             {
-                // headers: {
-                //     Authorization: `Bearer ${token}`
-                // }
-                withCredentials : true
+                headers: {
+                    Authorization: `Token ${token}`,
+                    "Content-Type": "application/json"
+                }
             }
         )
         .then((response) => {
-            alert(`Booking created! Pay ₹${response.data.total_price}`);
-            // redirect to payment page if needed
+            alert('Booking created!');
             // navigate(`/payment/${response.data.booking_id}`);
             navigate('/concerts')
         })
         .catch((error) => {
-            alert(error.response.data.error || "Booking failed");
+            alert(error.response?.data?.error || "Booking failed");
         })
         .finally(() => {
             setLoading(false);
@@ -123,14 +134,14 @@ function BookTickets() {
                                 &nbsp;
                                 <input 
                                 style={{display:'inline'}}
-                                    min={'0'}
+                                    min='0'
                                     type="number"
                                     value={tickets}
                                     onChange={handleTicketChange}
                                     className="form-control w-25 mx-auto my-3"
                                 />
-                                
-                                {!errorMessage && (
+
+                                {!errorMessage && tickets > 0 && (
                                     <p>Total Price: <b>₹{concert.price * tickets}</b></p>
                                 )}
 
