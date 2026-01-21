@@ -19,6 +19,8 @@ from .forms import RegisterForm, BookingForm
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 
+from rest_framework.authtoken.models import Token
+
 from rest_framework.authentication import SessionAuthentication
 
 from django.shortcuts import get_object_or_404
@@ -165,99 +167,99 @@ def register(request):
 
 # -------------------------------------------------------------------------------------------------------------- Login
 
-# @api_view(['POST'])
-# @permission_classes([AllowAny])
-# def user_login(request):
-
-#     email = request.data.get('email')
-#     password = request.data.get('password')
-
-#     if not email or not password:
-#         return Response(
-#             {"error": "email and password are required"},
-#             status=status.HTTP_400_BAD_REQUEST
-#         )
-    
-#     try:
-#         user = User.objects.get(email=email)
-    
-#     except User.DoesNotExist:
-#         return Response(
-#             {"error": "Invalid email or password"},
-#             status=status.HTTP_401_UNAUTHORIZED
-#         )
-
-#     user = authenticate(username=user.username, password=password)
-
-#     if user is None:
-#         return Response(
-#             {"error": "Invalid email or password"},
-#             status=status.HTTP_401_UNAUTHORIZED
-#         )
-
-#     token, _ = Token.objects.get_or_create(user=user)
-
-#     return Response(
-#         {
-#             "message": "Login successful",
-#             "username": user.username,
-#             "email": user.email,
-#             "is_admin" : user.is_staff or user.is_superuser,    #----------------------------- Admin / user
-#             "token" : token.key
-#         },
-#         status=status.HTTP_200_OK
-#     )
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def user_login(request):
+
     email = request.data.get('email')
     password = request.data.get('password')
 
     if not email or not password:
-        return Response({"error": "Email and password are required"}, status=400)
-
-    try:
-        user_obj = User.objects.get(email=email)
-    except User.DoesNotExist:
-        return Response({"error": "Invalid email or password"}, status=401)
-
-    user = authenticate(username=user_obj.username, password=password)
-    if user is None:
-        return Response({"error": "Invalid email or password"}, status=401)
+        return Response(
+            {"error": "email and password are required"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
     
-    login(request, user)  # Log in the user for Django session
+    try:
+        user = User.objects.get(email=email)
+    
+    except User.DoesNotExist:
+        return Response(
+            {"error": "Invalid email or password"},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
 
-    if user.is_staff or user.is_superuser:
-        redirect_url = '/bookings_list/'
-    else:
-        redirect_url = '/concertlist/'
+    user = authenticate(username=user.username, password=password)
 
-    return Response({
-        "message": "Login successful",
-        "username": user.username,
-        "email": user.email,
-        "is_admin": user.is_staff or user.is_superuser,
-        "redirect_url": redirect_url
-    }, status=200)
+    if user is None:
+        return Response(
+            {"error": "Invalid email or password"},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    token, _ = Token.objects.get_or_create(user=user)
+
+    return Response(
+        {
+            "message": "Login successful",
+            "username": user.username,
+            "email": user.email,
+            "is_admin" : user.is_staff or user.is_superuser,    #----------------------------- Admin / user
+            "token" : token.key
+        },
+        status=status.HTTP_200_OK
+    )
+
+# @api_view(['POST'])
+# @permission_classes([AllowAny])
+# def user_login(request):
+#     email = request.data.get('email')
+#     password = request.data.get('password')
+
+#     if not email or not password:
+#         return Response({"error": "Email and password are required"}, status=400)
+
+#     try:
+#         user_obj = User.objects.get(email=email)
+#     except User.DoesNotExist:
+#         return Response({"error": "Invalid email or password"}, status=401)
+
+#     user = authenticate(username=user_obj.username, password=password)
+#     if user is None:
+#         return Response({"error": "Invalid email or password"}, status=401)
+    
+#     login(request, user)  # Log in the user for Django session
+
+#     if user.is_staff or user.is_superuser:
+#         redirect_url = '/bookings_list/'
+#     else:
+#         redirect_url = '/concertlist/'
+
+#     return Response({
+#         "message": "Login successful",
+#         "username": user.username,
+#         "email": user.email,
+#         "is_admin": user.is_staff or user.is_superuser,
+#         "redirect_url": redirect_url
+#     }, status=200)
 
 # -------------------------------------------------------------------------------------------------------------- Logout
 
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# def user_logout(request):
-#     request.user.auth_token.delete()
-#     return Response(
-#         {"message": "Logout successful"},
-#         status=status.HTTP_200_OK
-#     )
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def user_logout(request):
+    request.user.auth_token.delete()
+    return Response(
+        {"message": "Logout successful"},
+        status=status.HTTP_200_OK
+    )
 
 # @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
-@login_required
-def user_logout(request):
-    logout(request)  # ends the session
-    return redirect('/login/')
+# @login_required
+# def user_logout(request):
+#     logout(request)  # ends the session
+#     return redirect('/login/')
     # return Response({"message": "Logout successful"}, status=200)
 
 # ------------------------------------------------------------------------------------------------------ Booking
@@ -315,17 +317,20 @@ def create_booking(request):
 
 # -------------------------------------------------------------------------------------------------------------- Booking List
 
-# @staff_member_required
-# def booking_list(request):
+# # @staff_member_required
+# @login_required
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def booking_list(request):
     
-#     bookings = (
-#         Booking.objects
-#         .select_related('user', 'concert')
-#         .order_by('-id')
-#     )
-#     return render(request, 'bookings_list.html', {
-#         'bookings': bookings
-#     })
+    bookings = (
+        Booking.objects
+        .select_related('user', 'concert')
+        .order_by('-id')
+    )
+    return render(request, 'bookings_list.html', {
+        'bookings': bookings
+    })
 
 # @staff_member_required
 # def booking_list(request):
@@ -334,11 +339,11 @@ def create_booking(request):
 #         'bookings': bookings
 #         })
 
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def booking_list(request, id):
-    bookings = get_object_or_404(Booking, id=id)
-    serializer = BookingSerializer(bookings, context={
-        'request': request
-        })
-    return Response(serializer.data)
+# @api_view(['GET'])
+# @permission_classes([AllowAny])
+# def booking_list(request, id):
+#     bookings = get_object_or_404(Booking, id=id)
+#     serializer = BookingSerializer(bookings, context={
+#         'request': request
+#         })
+#     return Response(serializer.data)
