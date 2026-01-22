@@ -6,7 +6,8 @@ import axios from "axios";
 
 import { removeUser } from "./store/authSlice";
 
-import "../App.css"
+import "../App.css";
+import Cookies from "js-cookie"; 
 
 
 function Navbar() {
@@ -19,13 +20,20 @@ function Navbar() {
     const token = user?.token;   // ------------------------------- get token from redux store
 
     function logout() {
-        
+
+        const csrftoken = Cookies.get("csrftoken");    // --------------------------------- get CSRF token from cookie
 
         axios.post('http://127.0.0.1:8000/logout/', {}, {
+            
+            withCredentials: true,   // ------------------------------- send session cookie
+
             headers: {
-                Authorization: `Token ${token}`,
-            },
+                // Authorization: `Token ${token}`,
+                 "X-CSRFToken": csrftoken,          // --------------- send CSRF token
+            }
+
         })
+        
 
         .finally(() => {     
             dispatch(removeUser());    // -------------------------------- redux + localStorage clear

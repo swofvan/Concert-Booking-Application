@@ -21,13 +21,17 @@ from django.contrib.auth.models import User
 
 from rest_framework.authtoken.models import Token
 
-from rest_framework.authentication import SessionAuthentication
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 
 from django.shortcuts import get_object_or_404
 
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 
 from django.contrib.admin.views.decorators import staff_member_required
+
+from django.http import HttpResponseForbidden
+
+
 
 # Create your views here.
 
@@ -35,8 +39,23 @@ from django.contrib.admin.views.decorators import staff_member_required
 
 # This check ensures only staff/admins can access these views
 
-# def is_admin(user):
-#     return user.is_authenticated and user.is_staff
+
+# def superuser_required(view_func):
+#     return user_passes_test(lambda user: user.is_superuser, login_url='/login/')(view_func)
+
+def superuser_required(view_func):
+    def wrapper(request, *args, **kwargs):
+       
+        if not request.user.is_authenticated:
+            return HttpResponseForbidden("Please login first")
+       
+        if request.user.is_superuser:
+            return view_func(request, *args, **kwargs)
+       
+        return HttpResponseForbidden("You must be superuser to access this page")
+    
+    return wrapper
+
 
 # --------------------------------------------------------------------------------------------------------------   admin view
 
@@ -146,7 +165,8 @@ def delete_concert(request, pk):
 
 # -------------------------------------------------------------------------------------------------------------- Register
 
-@csrf_exempt
+# @csrf_exempt   ---------------------------------------------------------  already in settings CSRF_TRUSTED_ORIGINS
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register(request):
@@ -167,7 +187,52 @@ def register(request):
 
 # -------------------------------------------------------------------------------------------------------------- Login
 
+# @api_view(['POST'])
+# @permission_classes([AllowAny])
+# def user_login(request):
+
+#     email = request.data.get('email')
+#     password = request.data.get('password')
+
+#     if not email or not password:
+#         return Response(
+#             {"error": "email and password are required"},
+#             status=status.HTTP_400_BAD_REQUEST
+#         )
+    
+#     try:
+#         user = User.objects.get(email=email)
+    
+#     except User.DoesNotExist:
+#         return Response(
+#             {"error": "Invalid email or password"},
+#             status=status.HTTP_401_UNAUTHORIZED
+#         )
+   
+#     user = authenticate(username=user.username, password=password)
+#     # login(request, user) 
+
+#     if user is None:
+#         return Response(
+#             {"error": "Invalid email or password"},
+#             status=status.HTTP_401_UNAUTHORIZED
+#         )
+
+#     token, _ = Token.objects.get_or_create(user=user)
+   
+#     return Response(
+#         {
+#             "message": "Login successful",
+#             "username": user.username,
+#             "email": user.email,
+#             "is_admin" : user.is_staff or user.is_superuser,    #----------------------------- Admin / user
+#             "token" : token.key
+#         },
+#         status=status.HTTP_200_OK
+#     )
+
 @api_view(['POST'])
+@authentication_classes([SessionAuthentication])
 @permission_classes([AllowAny])
 def user_login(request):
 
@@ -175,80 +240,36 @@ def user_login(request):
     password = request.data.get('password')
 
     if not email or not password:
-        return Response(
-            {"error": "email and password are required"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
+        return Response({"error": "email and password required"}, status=400)
+
     try:
-        user = User.objects.get(email=email)
-    
+        user_obj = User.objects.get(email=email)
+
     except User.DoesNotExist:
-        return Response(
-            {"error": "Invalid email or password"},
-            status=status.HTTP_401_UNAUTHORIZED
-        )
+        return Response({"error": "Invalid credentials"}, status=401)
 
-    user = authenticate(username=user.username, password=password)
+    user = authenticate(username=user_obj.username, password=password)
 
-    if user is None:
-        return Response(
-            {"error": "Invalid email or password"},
-            status=status.HTTP_401_UNAUTHORIZED
-        )
+    if not user:
+        return Response({"error": "Invalid credentials"}, status=401)
 
-    token, _ = Token.objects.get_or_create(user=user)
+    login(request, user)  # ------------------------------------------------------- creates Django session
 
-    return Response(
-        {
-            "message": "Login successful",
-            "username": user.username,
-            "email": user.email,
-            "is_admin" : user.is_staff or user.is_superuser,    #----------------------------- Admin / user
-            "token" : token.key
-        },
-        status=status.HTTP_200_OK
-    )
+    return Response({
+        "message": "Login successful",
+        "email": user.email,
+        "username": user.username,
+        "is_superuser": user.is_superuser,
+    }, status=200)
 
-# @api_view(['POST'])
-# @permission_classes([AllowAny])
-# def user_login(request):
-#     email = request.data.get('email')
-#     password = request.data.get('password')
-
-#     if not email or not password:
-#         return Response({"error": "Email and password are required"}, status=400)
-
-#     try:
-#         user_obj = User.objects.get(email=email)
-#     except User.DoesNotExist:
-#         return Response({"error": "Invalid email or password"}, status=401)
-
-#     user = authenticate(username=user_obj.username, password=password)
-#     if user is None:
-#         return Response({"error": "Invalid email or password"}, status=401)
-    
-#     login(request, user)  # Log in the user for Django session
-
-#     if user.is_staff or user.is_superuser:
-#         redirect_url = '/bookings_list/'
-#     else:
-#         redirect_url = '/concertlist/'
-
-#     return Response({
-#         "message": "Login successful",
-#         "username": user.username,
-#         "email": user.email,
-#         "is_admin": user.is_staff or user.is_superuser,
-#         "redirect_url": redirect_url
-#     }, status=200)
 
 # -------------------------------------------------------------------------------------------------------------- Logout
 
 @api_view(['POST'])
+@authentication_classes([SessionAuthentication])
 @permission_classes([IsAuthenticated])
 def user_logout(request):
-    request.user.auth_token.delete()
+    logout(request)                # -------------------------------- ends the session
     return Response(
         {"message": "Logout successful"},
         status=status.HTTP_200_OK
@@ -272,7 +293,7 @@ def create_booking(request):
     print("AUTH:", request.auth)
     
     form = BookingForm(request.POST)
-    if not form.is_valid():
+    if form.is_valid():
         concert_id = request.data.get('show_id')
         tickets = int(request.data.get('tickets', 0))
         concert = get_object_or_404(Concert, id=concert_id)
@@ -319,31 +340,37 @@ def create_booking(request):
 
 # # @staff_member_required
 # @login_required
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
+# @api_view(['GET'])
+# # @permission_classes([IsAuthenticated])
+# def booking_list(request):
+#     print("USER:", request.user)
+#     if  (request.user.is_superuser):
+       
+
+#         bookings = (
+#             Booking.objects
+#             .select_related('user', 'show')
+#             .order_by('-id')
+#         )
+#         return render(request, 'bookings_list.html', {
+#             'bookings': bookings
+#         })
+#     else:
+#         return Response(
+#             {"error": "You do not have permission to view this page."},
+#             status=status.HTTP_403_FORBIDDEN
+#         )
+
+
+@ superuser_required
 def booking_list(request):
-    
-    bookings = (
-        Booking.objects
-        .select_related('user', 'concert')
-        .order_by('-id')
-    )
+    print("REQUEST USER:", request.user)
+    print("USER:", request.user.is_superuser)
+    # if not request.user.is_superuser:
+    #     return HttpResponseForbidden("Only superuser can access this page")
+
+    bookings = Booking.objects.select_related('user', 'show').all()
+
     return render(request, 'bookings_list.html', {
         'bookings': bookings
     })
-
-# @staff_member_required
-# def booking_list(request):
-#     bookings = Booking.objects.select_related('user', 'concert').all().order_by('-id')
-#     return render(request, 'bookings_list.html', {
-#         'bookings': bookings
-#         })
-
-# @api_view(['GET'])
-# @permission_classes([AllowAny])
-# def booking_list(request, id):
-#     bookings = get_object_or_404(Booking, id=id)
-#     serializer = BookingSerializer(bookings, context={
-#         'request': request
-#         })
-#     return Response(serializer.data)

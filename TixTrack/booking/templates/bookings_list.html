@@ -50,10 +50,10 @@
                     {% for booking in bookings %}
                     <tr>
                     <td>{{ booking.user.username }}</td>
-                    <td>{{ booking.concert.concert_name }}</td>
+                    <td>{{ booking.show.concert_name }}</td>
                     <td>{{ booking.tickets }}</td>
                     <td>{{ booking.total_price }}</td>
-                    <td>{{ booking.booking_date }}</td>
+                    <td>{{ booking.created_at }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

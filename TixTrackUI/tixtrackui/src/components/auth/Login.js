@@ -1,9 +1,12 @@
 import axios from "axios";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { setUser } from "../store/authSlice";
 import { useNavigate, Link } from "react-router-dom";
 import Navbar from "../Navbar";
+
+
+import Cookies from "js-cookie";
 
 function Login() {
     
@@ -14,6 +17,19 @@ function Login() {
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
+
+    // --------------------------------------------------------------------------------- Make a GET request once to fetch CSRF cookie
+    
+    useEffect(() => {
+        axios.get("http://127.0.0.1:8000/", {
+
+            withCredentials: true
+             
+        })
+            .catch(err =>
+                console.log("CSRF fetch failed", err));
+    }, []);
+
 
     function loginUser(e) {
 
@@ -26,28 +42,33 @@ function Login() {
             return;
         }
 
+        const csrftoken = Cookies.get("csrftoken");   // --------------------------------- get CSRF token from cookie
+
         axios.post('http://127.0.0.1:8000/login/', {
             email: email,
             password: password
         },
         {
             headers: {
-                "Content-Type": "application/json"
-            }
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrftoken               // --------------- send CSRF token
+            },
+            
+             withCredentials: true   // ------------------------------- for session cookie
         })
 
         .then(response => {
             const user = {
                 email: response.data.email,
                 username: response.data.username,
-                is_admin: response.data.is_admin,
-                token: response.data.token
+                is_superuser: response.data.is_superuser,
+                // token: response.data.token
             };
 
             dispatch(setUser(user));   // ------------------------  redux + localStorage
-            localStorage.setItem('token', user.token); // -------------------------------- persist token
+            // localStorage.setItem('token', user.token); // -------------------------------- persist token
 
-            if (user.is_admin) {                                        // ------------------------  admin or user
+            if (user.is_superuser) {                                        // ------------------------  admin or user
                 window.location.href = "http://127.0.0.1:8000/";
             }   
             else {
@@ -56,6 +77,7 @@ function Login() {
   
         })
         .catch(error => {
+             console.log(error);
             if (error.response.data.errors) {
                 setErrorMessage(Object.values(error.response.data.errors).join(' '));
             } else if (error.response.data.message) {
@@ -77,7 +99,7 @@ function Login() {
                     <div className='col-md-6 offset-3' id="registerformbg">
 
                         <Link to={'/'} className="btn btn-outline-secondary">
-                            <i class="bi bi-house-door"></i>
+                            <i className="bi bi-house-door"></i>
                         </Link>
 
                         <h2 className="text-center">Login</h2>

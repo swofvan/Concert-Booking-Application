@@ -23,10 +23,10 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
 
-from rest_framework_simplejwt.views import (TokenObtainPairView, TokenRefreshView,)
+# from rest_framework_simplejwt.views import (TokenObtainPairView, TokenRefreshView,)
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # path('admin/', admin.site.urls),
     path('', views.concertlist, name='concertlist'),
     path('add_concerts/', views.addconcerts, name='add_concerts'),
     path('edit_concerts/<int:pk>/', views.edit_concert, name='edit_concert'),

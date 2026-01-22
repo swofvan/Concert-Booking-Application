@@ -27,10 +27,40 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-CORS_ALLOW_ALL_ORIGINS = True  #--------------------------------------------------------------- for react
+# CORS_ALLOW_ALL_ORIGINS = False  #--------------------------------------------------------------- for react
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",
+# ]
+
+# CSRF_TRUSTED_ORIGINS = [
+#     "http://localhost:3000",
+# ]
+
+# CORS_ALLOW_CREDENTIALS = True                       # This is REQUIRED for session login  and  React to send session cookie
+
+# CSRF
+CSRF_COOKIE_HTTPONLY = False   #  OK for React
+CSRF_COOKIE_SAMESITE = "None"  #  REQUIRED
+CSRF_COOKIE_SECURE = False     #  True only in HTTPS
+
+# SESSION
+SESSION_COOKIE_SAMESITE = "None"   #  REQUIRED
+SESSION_COOKIE_SECURE = False      #  True only in HTTPS
+
+# CORS
+CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
 ]
+CORS_ALLOW_CREDENTIALS = True
+
+# TRUSTED
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+]
+
+
+
 
 
 # Application definition
@@ -147,29 +177,28 @@ MEDIA_URL = 'media/'
 
 APPEND_SLASH = True
 
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:3000",
-]
-
-CORS_ALLOW_CREDENTIALS = True                       # This is REQUIRED for session login   without this csrf token will block
-
-LOGIN_URL = '/login/'
+LOGIN_URL = '/admin/login/'
 LOGIN_REDIRECT_URL = '/concertlist/'
 LOGOUT_REDIRECT_URL = '/login/'
 
 
+
 # REST_FRAMEWORK = {
-#     "DEFAULT_AUTHENTICATION_CLASSES": [
-#         "rest_framework.authentication.SessionAuthentication",
-#     ]
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#         # 'rest_framework_simplejwt.authentication.JWTAuthentication',     # ----------------------  JWT Authentication
+#         # 'rest_framework.authentication.TokenAuthentication',
+#         'rest_framework.authentication.SessionAuthentication'
+#     ),
+#     'DEFAULT_PERMISSION_CLASSES': (
+#         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
+#         'rest_framework.permissions.IsAuthenticated', )
 # }
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        # 'rest_framework_simplejwt.authentication.JWTAuthentication',     # ----------------------  JWT Authentication
-        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
-        'rest_framework.permissions.IsAuthenticated', )
+        'rest_framework.permissions.AllowAny',
+    ),
 }
