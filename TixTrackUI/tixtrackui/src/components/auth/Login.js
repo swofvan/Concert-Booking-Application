@@ -44,50 +44,112 @@ function Login() {
 
         const csrftoken = Cookies.get("csrftoken");   // --------------------------------- get CSRF token from cookie
 
-        axios.post('http://127.0.0.1:8000/login/', {
-            email: email,
-            password: password
+        // axios.post('http://127.0.0.1:8000/login/', {
+        //     email: email,
+        //     password: password
+        // },
+        // {
+        //     // headers: {
+        //     //     "Content-Type": "application/json",
+        //     //     "X-CSRFToken": csrftoken               // --------------- send CSRF token
+        //     // },
+            
+        //      withCredentials: true   // ------------------------------- for session cookie
+        // })
+
+        // .then(response => {
+        //     const user = {
+        //         email: response.data.email,
+        //         username: response.data.username,
+        //         is_superuser: response.data.is_superuser,
+        //         // token: response.data.token
+        //     };
+
+        //     dispatch(setUser(user));   // ------------------------  redux + localStorage
+        //     // localStorage.setItem('token', user.token); // -------------------------------- persist token
+
+        //     if (user.is_superuser) {                                        // ------------------------  admin or user
+        //         window.location.href = "http://127.0.0.1:8000/";
+        //     }   
+        //     else {
+        //         navigate("/");
+        //     }
+  
+        // })
+        // .catch(error => {
+        //      console.log(error);
+        //     if (error.response.data.errors) {
+        //         setErrorMessage(Object.values(error.response.data.errors).join(' '));
+        //     } else if (error.response.data.message) {
+        //         setErrorMessage(error.response.data.message);
+        //     } else {
+        //         setErrorMessage('Failed to login user. Please contact admin');
+        //     }
+        // });
+    //     axios.post(
+    //         "http://localhost:8000/login/",
+    //         {
+    //             email,
+    //             password
+    //         },
+    //         {
+    //             withCredentials: true
+    //         }
+    //         )
+    //         .then(res => {
+    //             if (res.data.is_superuser) {
+    //                 window.location.href = "http://localhost:8000/bookings_list/";
+    //             }
+    //             else {
+    //                 navigate("/");
+    //             }
+
+    //             dispatch(setUser(user));   // ------------------------  redux + localStorage
+    //         });
+
+
+    // }
+
+    axios.post(
+        "http://localhost:8000/login/",
+        {
+            email,
+            password
         },
         {
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": csrftoken               // --------------- send CSRF token
-            },
-            
-             withCredentials: true   // ------------------------------- for session cookie
-        })
+            withCredentials: true   // REQUIRED for Django session
+        }
+    )
+    .then(res => {
 
-        .then(response => {
-            const user = {
-                email: response.data.email,
-                username: response.data.username,
-                is_superuser: response.data.is_superuser,
-                // token: response.data.token
-            };
+        const user = {
+            email: res.data.email,
+            username: res.data.username,
+            is_superuser: res.data.is_superuser,
+        };
 
-            dispatch(setUser(user));   // ------------------------  redux + localStorage
-            // localStorage.setItem('token', user.token); // -------------------------------- persist token
+        //  Save user in redux + localStorage
+        dispatch(setUser(user));
 
-            if (user.is_superuser) {                                        // ------------------------  admin or user
-                window.location.href = "http://127.0.0.1:8000/";
-            }   
-            else {
-                navigate("/");
-            }
-  
-        })
-        .catch(error => {
-             console.log(error);
-            if (error.response.data.errors) {
-                setErrorMessage(Object.values(error.response.data.errors).join(' '));
-            } else if (error.response.data.message) {
-                setErrorMessage(error.response.data.message);
-            } else {
-                setErrorMessage('Failed to login user. Please contact admin');
-            }
-        });
-    }
+        //  ADMIN → Django pages
+        if (user.is_superuser) {
+            window.location.href = "http://localhost:8000/";
+        }
+        //  NORMAL USER → React app
+        else {
+            navigate("/");
+        }
+    })
+    .catch(error => {
+        console.log(error);
 
+        if (error.response?.data?.error) {
+            setErrorMessage(error.response.data.error);
+        } else {
+            setErrorMessage("Login failed");
+        }
+    });
+}
     return (
 
         <div style={{backgroundColor:'#e9f2ff', minHeight:'100vh'}}>

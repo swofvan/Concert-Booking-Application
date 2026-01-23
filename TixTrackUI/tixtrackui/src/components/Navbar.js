@@ -17,9 +17,9 @@ function Navbar() {
 
     
     const user = useSelector(state => state.auth.user);
-    const token = user?.token;   // ------------------------------- get token from redux store
+    //const token = user?.token;   // ------------------------------- get token from redux store
 
-    function logout() {
+    function logoutuser() {
 
         const csrftoken = Cookies.get("csrftoken");    // --------------------------------- get CSRF token from cookie
 
@@ -33,11 +33,15 @@ function Navbar() {
             }
 
         })
-        
-
+        .then(res => {
+            console.log(res.data.message);             // ------------------------- optional: show logout message
+        })
+        .catch(err => {
+            console.error("Logout failed", err);      // ------------------------- handle errors
+        })
         .finally(() => {     
-            dispatch(removeUser());    // -------------------------------- redux + localStorage clear
-            navigate('/login');        
+            dispatch(removeUser());                    // -------------------------------- redux + localStorage clear
+            navigate('/login');                        // ------------------------- redirect to login
         });
     }
 
@@ -80,7 +84,7 @@ function Navbar() {
                     {user ? (
                         
                         <Link
-                            onClick={logout} 
+                            onClick={logoutuser} 
                             className="btn text-white"
                             title="Logout"
                             style={{

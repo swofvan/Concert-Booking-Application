@@ -30,6 +30,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.admin.views.decorators import staff_member_required
 
 from django.http import HttpResponseForbidden
+from .authentication import CsrfExemptSessionAuthentication
 
 
 
@@ -59,6 +60,7 @@ def superuser_required(view_func):
 
 # --------------------------------------------------------------------------------------------------------------   admin view
 
+@authentication_classes([CsrfExemptSessionAuthentication])
 def concertlist(request):
 
     query = request.GET.get('q')
@@ -115,6 +117,7 @@ def concert_detail(request, id):
 
 # --------------------------------------------------------------------------------------------------------------   Create
 
+@authentication_classes([CsrfExemptSessionAuthentication])
 def addconcerts(request):
     if request.method == 'POST':
         form = ConcertForm(request.POST, request.FILES)
@@ -133,6 +136,7 @@ def addconcerts(request):
 
 # --------------------------------------------------------------------------------------------------------------   edit
 
+@authentication_classes([CsrfExemptSessionAuthentication])
 def edit_concert(request,pk):
     concert= Concert.objects.get(pk=pk)
 
@@ -152,6 +156,7 @@ def edit_concert(request,pk):
 
 # -------------------------------------------------------------------------------------------------------------- delete
 
+@authentication_classes([CsrfExemptSessionAuthentication])
 def delete_concert(request, pk):
     concert = Concert.objects.get(pk=pk)
 
@@ -232,7 +237,7 @@ def register(request):
 #     )
 
 @api_view(['POST'])
-@authentication_classes([SessionAuthentication])
+@authentication_classes([CsrfExemptSessionAuthentication])
 @permission_classes([AllowAny])
 def user_login(request):
 
@@ -248,18 +253,13 @@ def user_login(request):
     except User.DoesNotExist:
         return Response({"error": "Invalid credentials"}, status=401)
 
-    user = authenticate(username=user_obj.username, password=password)
-
-    if not user:
-        return Response({"error": "Invalid credentials"}, status=401)
-
-    login(request, user)  # ------------------------------------------------------- creates Django session
+    login(request, user_obj)  # ------------------------------------------------------- creates Django session
 
     return Response({
         "message": "Login successful",
-        "email": user.email,
-        "username": user.username,
-        "is_superuser": user.is_superuser,
+        "email": user_obj.email,
+        "username": user_obj.username,
+        "is_superuser": user_obj.is_superuser,
     }, status=200)
 
 
@@ -362,13 +362,11 @@ def create_booking(request):
 #         )
 
 
-@ superuser_required
+@superuser_required
 def booking_list(request):
     print("REQUEST USER:", request.user)
     print("USER:", request.user.is_superuser)
-    # if not request.user.is_superuser:
-    #     return HttpResponseForbidden("Only superuser can access this page")
-
+    
     bookings = Booking.objects.select_related('user', 'show').all()
 
     return render(request, 'bookings_list.html', {
