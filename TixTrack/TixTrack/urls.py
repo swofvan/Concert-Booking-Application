@@ -34,19 +34,20 @@ urlpatterns = [
 
     path('api/concerts', views.concert_list_api, name='concert_list_api'),
     path('api/concerts/<int:id>/', views.concert_detail),
-
-
     path('register/', views.register, name='register'),
+
     path('login/', views.user_login, name='login'),
     path('logout/', views.user_logout, name='logout'),
-    # path('logout/', LogoutView.as_view(), name='logout')
 
-
-    # path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),   # ----------------- JWT LOGIN
-    # path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     
-    path('create_booking/', views.create_booking, name='booking'),
+    path('create_booking/', views.create_booking, name='create_booking'),
+
     path('bookings_list/', views.booking_list, name='bookings_list'),
+
+    path('users_list/', views.users_list, name='users_list'),
+    path('disable_user/<int:user_id>/', views.disable_user, name='disable_user'),
+    path('enable_users/<int:user_id>/', views.enable_user, name='enable_user'),
+    path('delete_users/<int:user_id>/', views.delete_user, name='delete_user'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)

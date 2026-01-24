@@ -5,52 +5,142 @@ import "../App.css";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
+// function BookTickets() {
+
+//     const navigate = useNavigate();
+//     const { concertId } = useParams();     // ----------------------------- get ID from URL
+
+//     const [concert, setConcert] = useState(null);
+
+//     const [tickets, setTickets] = useState(0);
+//     const [loading, setLoading] = useState(false);
+
+//     const [errorMessage, setErrorMessage] = useState('');
+
+//     useEffect(() => {
+//         if (!concertId) {
+//             setLoading(false);
+//             return;
+//         }
+
+//         axios.get(`http://127.0.0.1:8000/api/concerts/${concertId}/`)
+//             .then((response) => {
+//                 setConcert(response.data);
+//             })
+//             .catch(() => {
+//                 alert("Failed to load concert details");
+//                 navigate("/concerts");
+//             })
+//             .finally(() => {
+//                 setLoading(false);
+//             });
+//     }, [concertId, navigate]);
+
+
+
+//      if (!concert) {
+//         return (
+//             <div style={{ backgroundColor: "#e9f2ff", minHeight: "100vh" }}>
+//                 <Navbar />
+//                 <div className="text-center mt-5">
+//                     <div className="spinner-border text-primary"></div>
+//                     <p>Loading concert details...</p>
+//                 </div>
+//             </div>
+//         );
+//     }
+
+//     // ------------------------------------------------------- Ticket change handler,   Validation while typing (UX)
+
+//     const handleTicketChange = (e) => {
+//         const value = Number(e.target.value);
+
+//         if (value < 1 || value > 3) {
+//             setErrorMessage("You can book between 1 and 3 tickets only");
+//         } else {
+//             setErrorMessage("");
+//         }
+
+//         setTickets(value);
+//     };
+
+// // ------------------------------------------------------- Validation before API call (Safety)
+
+//     const bookTickets = () => {
+
+//         if (tickets < 1 || tickets > 3) {
+//             setErrorMessage("Please select between 1 and 3 tickets");
+//             return;
+//         }
+
+//         const token = localStorage.getItem("token");
+
+//         if (!token) {
+//             alert("Please login to book tickets");
+//             navigate("/login");
+//             return;
+//         }
+
+//         setLoading(true);
+
+//         axios.post(
+//             "http://127.0.0.1:8000/create_booking/",
+//             {
+//                 show_id: concert.id,
+//                 tickets: tickets
+//             },
+//             {
+                
+//                     withCredentials: true,
+//                 headers: {
+//                     // Authorization: `Token ${token}`,
+//                     "Content-Type": "application/json"
+//                 }
+//             }
+//         )
+//         .then((response) => {
+//             alert('Booking created!');
+//             // navigate(`/payment/${response.data.booking_id}`);
+//             navigate('/concerts')
+//         })
+//         .catch((error) => {
+//             alert(error.response?.data?.error || "Booking failed");
+//         })
+//         .finally(() => {
+//             setLoading(false);
+//         });
+//     };
+
+
+
 function BookTickets() {
 
     const navigate = useNavigate();
-    const { concertId } = useParams();     // ----------------------------- get ID from URL
+    const { concertId } = useParams();
 
     const [concert, setConcert] = useState(null);
-
-    const [tickets, setTickets] = useState(0);
+    const [tickets, setTickets] = useState(1);
     const [loading, setLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
 
-    const [errorMessage, setErrorMessage] = useState('');
-
-    useEffect(() => {
-        if (!concertId) {
-            setLoading(false);
-            return;
-        }
-
-        axios.get(`http://127.0.0.1:8000/api/concerts/${concertId}/`)
-            .then((response) => {
-                setConcert(response.data);
+     useEffect(() => {
+        axios.get(`http://127.0.0.1:8000/api/concerts/${concertId}/`,
+            {
+                withCredentials: true
             })
-            .catch(() => {
-                alert("Failed to load concert details");
-                navigate("/concerts");
-            })
-            .finally(() => {
-                setLoading(false);
-            });
+
+        .then(response => 
+            setConcert(response.data))
+
+        .catch(() => {
+            alert("Failed to load concert details");
+            navigate("/concerts");
+        });
     }, [concertId, navigate]);
 
-
-
-     if (!concert) {
-        return (
-            <div style={{ backgroundColor: "#e9f2ff", minHeight: "100vh" }}>
-                <Navbar />
-                <div className="text-center mt-5">
-                    <div className="spinner-border text-primary"></div>
-                    <p>Loading concert details...</p>
-                </div>
-            </div>
-        );
+    if (!concert) {
+        return <p>Loading...</p>;
     }
-
-    // ------------------------------------------------------- Ticket change handler,   Validation while typing (UX)
 
     const handleTicketChange = (e) => {
         const value = Number(e.target.value);
@@ -64,20 +154,10 @@ function BookTickets() {
         setTickets(value);
     };
 
-// ------------------------------------------------------- Validation before API call (Safety)
-
     const bookTickets = () => {
 
         if (tickets < 1 || tickets > 3) {
             setErrorMessage("Please select between 1 and 3 tickets");
-            return;
-        }
-
-        const token = localStorage.getItem("token");
-
-        if (!token) {
-            alert("Please login to book tickets");
-            navigate("/login");
             return;
         }
 
@@ -86,27 +166,31 @@ function BookTickets() {
         axios.post(
             "http://127.0.0.1:8000/create_booking/",
             {
-                show_id: concert.id,
+                show: concert.id,     
                 tickets: tickets
             },
             {
-                headers: {
-                    Authorization: `Token ${token}`,
-                    "Content-Type": "application/json"
-                }
+                withCredentials: true  
             }
         )
-        .then((response) => {
-            alert('Booking created!');
-            // navigate(`/payment/${response.data.booking_id}`);
-            navigate('/concerts')
+        .then(() => {
+            alert("Booking created successfully!");
+            navigate("/concerts");
         })
-        .catch((error) => {
-            alert(error.response?.data?.error || "Booking failed");
+        // .catch(err => {
+        //     alert(err.response?.data?.error || "Booking failed");
+        // })
+        .catch(err => {
+            if (err.response?.status === 401 || err.response?.status === 403) {
+                // User not logged in or session expired
+                alert("Session expired or not authorized. Please login again.");
+                navigate("/login");
+            } else {
+                alert(err.response?.data?.error || "Booking failed");
+            }
         })
-        .finally(() => {
-            setLoading(false);
-        });
+
+        .finally(() => setLoading(false));
     };
 
     return (

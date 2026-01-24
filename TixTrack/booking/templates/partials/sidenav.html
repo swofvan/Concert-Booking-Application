@@ -96,7 +96,7 @@
 
             <li class="nav-item mb-3">
                 <i class="bi bi-person-fill text-white mr-2"></i>
-                <a class="nav-link text-white d-inline" href="#">
+                <a class="nav-link text-white d-inline" href="{% url 'users_list' %}">
                     Users
                 </a>
             </li>
@@ -110,14 +110,14 @@
             </li>
         </ul>
 
-        <span class="logout-item">
+        <!-- <span class="logout-item">
                 <form method="POST" action="{% url 'logout' %}">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-danger btn-block">
                         <i class="bi bi-box-arrow-right"></i> Logout
                     </button>
                 </form>
-            </span>
+            </span> -->
 
     </div>
 </div>

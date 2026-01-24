@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 
-from .forms import ConcertForm
+from .forms import ConcertForm, RegisterForm
 from .models import Concert, Booking
 
 from django.db.models import Q     # for search / filter
@@ -13,16 +13,13 @@ from rest_framework import status
 from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework.decorators import api_view, permission_classes, authentication_classes 
-from rest_framework.permissions import AllowAny,IsAuthenticated
-from .forms import RegisterForm, BookingForm
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 
-from rest_framework.authtoken.models import Token
 
-from rest_framework.authentication import SessionAuthentication, TokenAuthentication
-
+from rest_framework.authentication import SessionAuthentication
 from django.shortcuts import get_object_or_404
 
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -37,12 +34,6 @@ from .authentication import CsrfExemptSessionAuthentication
 # Create your views here.
 
 # --------------------------------------------------------------------------------------------------------------  admin check
-
-# This check ensures only staff/admins can access these views
-
-
-# def superuser_required(view_func):
-#     return user_passes_test(lambda user: user.is_superuser, login_url='/login/')(view_func)
 
 def superuser_required(view_func):
     def wrapper(request, *args, **kwargs):
@@ -192,50 +183,6 @@ def register(request):
 
 # -------------------------------------------------------------------------------------------------------------- Login
 
-# @api_view(['POST'])
-# @permission_classes([AllowAny])
-# def user_login(request):
-
-#     email = request.data.get('email')
-#     password = request.data.get('password')
-
-#     if not email or not password:
-#         return Response(
-#             {"error": "email and password are required"},
-#             status=status.HTTP_400_BAD_REQUEST
-#         )
-    
-#     try:
-#         user = User.objects.get(email=email)
-    
-#     except User.DoesNotExist:
-#         return Response(
-#             {"error": "Invalid email or password"},
-#             status=status.HTTP_401_UNAUTHORIZED
-#         )
-   
-#     user = authenticate(username=user.username, password=password)
-#     # login(request, user) 
-
-#     if user is None:
-#         return Response(
-#             {"error": "Invalid email or password"},
-#             status=status.HTTP_401_UNAUTHORIZED
-#         )
-
-#     token, _ = Token.objects.get_or_create(user=user)
-   
-#     return Response(
-#         {
-#             "message": "Login successful",
-#             "username": user.username,
-#             "email": user.email,
-#             "is_admin" : user.is_staff or user.is_superuser,    #----------------------------- Admin / user
-#             "token" : token.key
-#         },
-#         status=status.HTTP_200_OK
-#     )
-
 @api_view(['POST'])
 @authentication_classes([CsrfExemptSessionAuthentication])
 @permission_classes([AllowAny])
@@ -264,7 +211,7 @@ def user_login(request):
 
 
 # -------------------------------------------------------------------------------------------------------------- Logout
-
+@csrf_exempt
 @api_view(['POST'])
 @authentication_classes([SessionAuthentication])
 @permission_classes([IsAuthenticated])
@@ -275,100 +222,195 @@ def user_logout(request):
         status=status.HTTP_200_OK
     )
 
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# @login_required
-# def user_logout(request):
-#     logout(request)  # ends the session
-#     return redirect('/login/')
-    # return Response({"message": "Logout successful"}, status=200)
-
 # ------------------------------------------------------------------------------------------------------ Booking
 
+# @api_view(['POST'])
+# @authentication_classes([CsrfExemptSessionAuthentication])
+# @permission_classes([IsAuthenticated])
+# def create_booking(request):
+
+#     print("LOGGED USER:", request.user)
+
+#     concert_id = request.data.get('show')
+#     tickets = request.data.get('tickets')
+
+#     if not concert_id or not tickets:
+#         return Response(
+#             {"error": "show and tickets are required"},
+#             status=status.HTTP_400_BAD_REQUEST
+#         )
+
+#     concert = get_object_or_404(Concert, id=concert_id)
+
+#     # attach user manually (never trust frontend)
+#     form = BookingForm({
+#         'user': request.user.id,
+#         'show': concert.id,
+#         'tickets': tickets
+#     })
+
+#     if not form.is_valid():
+#         return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+
+#     tickets = form.cleaned_data['tickets']
+
+#     if concert.total_tickets < tickets:
+#         return Response(
+#             {"error": "Not enough tickets available"},
+#             status=status.HTTP_400_BAD_REQUEST
+#         )
+
+#     total_price = concert.price * tickets
+
+#     booking = Booking.objects.create(
+#         user=request.user,
+#         show=concert,
+#         tickets=tickets,
+#         total_price=total_price,
+#         is_confirmed=False
+#     )
+
+#     concert.total_tickets -= tickets
+#     concert.save()
+
+#     serializer = BookingSerializer(
+#         booking, 
+#         context={
+#             'request': request
+#             })
+#     return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 @api_view(['POST'])
+@authentication_classes([CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
 def create_booking(request):
 
-    print("USER:", request.user)
-    print("AUTH:", request.auth)
-    
-    form = BookingForm(request.POST)
-    if form.is_valid():
-        concert_id = request.data.get('show_id')
-        tickets = int(request.data.get('tickets', 0))
-        concert = get_object_or_404(Concert, id=concert_id)
+    serializer = BookingSerializer(data=request.data)
 
-        if tickets < 1 or tickets > 3:
-            return Response(
-                {"error": "You can book minimum 1 and maximum 3 tickets"},
-                status=status.HTTP_400_BAD_REQUEST
-            )  
-        if concert.total_tickets < tickets:
-            return Response(
-                {"error": "Not enough tickets available"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        total_price = concert.price * tickets
+    concert = serializer.validated_data['show']
+    tickets = serializer.validated_data['tickets']
 
-        booking = Booking.objects.create(
-            user=request.user,
-            show=concert,
-            tickets=tickets,
-            total_price=total_price
+    if concert.total_tickets < tickets:
+        return Response(
+            {"error": "Not enough tickets available"},
+            status=status.HTTP_400_BAD_REQUEST
         )
-        booking.total_price = total_price
-        booking.is_confirmed = False
-        booking.save()
-        Concert.objects.filter(id=concert.id).update(
-            total_tickets=concert.total_tickets - tickets
-        )
-        
 
+    total_price = concert.price * tickets
 
-        serializer = BookingSerializer(booking,
-            context={
-                'request': request
-            })
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    booking = serializer.save(
+        user = request.user,              # backend controlled
+        total_price = total_price,         # backend controlled
+        is_confirmed = False
+    )
 
-    return Response(status=status.HTTP_400_BAD_REQUEST)
+    concert.total_tickets -= tickets
+    concert.save()
 
+    return Response(
+        BookingSerializer(booking).data,
+        status=status.HTTP_201_CREATED
+    )
 
 
 # -------------------------------------------------------------------------------------------------------------- Booking List
-
-# # @staff_member_required
-# @login_required
-# @api_view(['GET'])
-# # @permission_classes([IsAuthenticated])
-# def booking_list(request):
-#     print("USER:", request.user)
-#     if  (request.user.is_superuser):
-       
-
-#         bookings = (
-#             Booking.objects
-#             .select_related('user', 'show')
-#             .order_by('-id')
-#         )
-#         return render(request, 'bookings_list.html', {
-#             'bookings': bookings
-#         })
-#     else:
-#         return Response(
-#             {"error": "You do not have permission to view this page."},
-#             status=status.HTTP_403_FORBIDDEN
-#         )
-
 
 @superuser_required
 def booking_list(request):
     print("REQUEST USER:", request.user)
     print("USER:", request.user.is_superuser)
+
+    search = request.GET.get('search', '')
     
     bookings = Booking.objects.select_related('user', 'show').all()
 
+    if search:
+        bookings = bookings.filter(user__username__icontains=search)
+
+        if not bookings.exists():
+            bookings = Booking.objects.filter(
+                show__concert_name__icontains=search
+            )
+
     return render(request, 'bookings_list.html', {
-        'bookings': bookings
+        'bookings': bookings,
+        'search': search
     })
+
+
+# -------------------------------------------------------------------------------------------------------------- users List
+
+
+@superuser_required
+def users_list(request):
+
+    users = User.objects.all().order_by('-id')
+    search = request.GET.get('username', '').strip().lower()
+
+    if search:
+        
+        users = users.filter(username__icontains=search) | users.filter(email__icontains=search)
+
+        if search == 'admin':
+            users = users.filter(is_superuser=True)
+        elif search == 'user':
+            users = users.filter(is_superuser=False)
+        elif search == 'active':
+            users = users.filter(is_active=True)
+        elif search in ['disabled', 'inactive', 'blocked']:
+            users = users.filter(is_active=False)   
+
+    
+    return render(request, 'users_list.html', {
+        'users': users,
+        'username': request.GET.get('username', '')
+    })
+
+# -------------------------------------------------------------------------------------------------------------- disable user
+
+@superuser_required
+def disable_user(request, user_id):
+
+    if request.user.id == user_id:
+        return HttpResponseForbidden("You cannot disable yourself")
+    
+    user = get_object_or_404(User, id=user_id)
+
+    if user.is_superuser:
+        return HttpResponseForbidden("Admin user cannot be disabled")
+
+    user.is_active = False
+    user.save()
+
+    return redirect('users_list')
+
+# -------------------------------------------------------------------------------------------------------------- enable user
+
+@superuser_required
+def enable_user(request, user_id):
+
+    user = get_object_or_404(User, id=user_id)
+    user.is_active = True
+    user.save()
+
+    return redirect('users_list')
+
+# -------------------------------------------------------------------------------------------------------------- delete users
+
+@superuser_required
+def delete_user(request, user_id):
+    
+    if request.user.id == user_id:
+        return HttpResponseForbidden("You cannot delete yourself")
+
+    user = get_object_or_404(User, id=user_id)
+
+    if user.is_superuser:
+        return HttpResponseForbidden("Admin user cannot be deleted")
+
+    user.delete()
+
+    return redirect('users_list')

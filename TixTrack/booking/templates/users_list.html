@@ -1,4 +1,4 @@
-<!-- {% extends 'layout/app-layout.html'%}
+{% extends 'layout/app-layout.html'%}
 {% block content %}
 
 <div class="listfull">
@@ -8,29 +8,28 @@
 
                 <div class="col">
                     <div class="search-wrapper">
-                        <form method="get">
+                        <form method="get" >
                             <div class="search-box">
                                 <span class="search-icon">
                                     <i class="bi bi-search"></i>
                                 </span>
                                 <input 
                                     type="text"
-                                    name="q"
+                                    name="username"
                                     class="search-input"
-                                    placeholder="Search"
-                                    value="{{ request.GET.q }}"
+                                    placeholder="Search (username, admin, user, active, disabled)"
+                                    value="{{ username }}"
                                 >
                             </div>
                         </form>
                     </div>
                 </div>
-            </div> -->
+            </div>
 
 
 
 <!-- -------------------------------------------------------------------------------------------------------------------- -->
 
-<!-- 
             <div class="row  bg-white" style="margin-top: 20px ; border-radius: 12px;">
                 <div class="col">
                 
@@ -40,43 +39,61 @@
             <table class="table" style="margin-top: 20px;">
                 <thead>
                     <tr>
-                        <th scope="col">User Id</th>
-                        <th scope="col">Name</th>
-                        <th scope="col">Email</th>
-                        <th scope="col">Admin</th>
-                        <th scope="col">Date Joined</th>
-                        <th scope="col"></th>
+                    <th scope="col">ID</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Role</th>
+                    <th scope="col">Status</th>
+                    <th scope="col"></th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for user in users %}
                     <tr>
-                        <td>{{ user.id }}</td>
-                        <td>{{ user.username }}</td>
-                        <td>{{ user.email }}</td>
-                        <td>
-                            {% if user.is_staff %}
-                                Yes
-                            {% else %}
-                                No
-                            {% endif %}
-                        </td>
-                        <td>{{ user.date_joined }}</td>
-
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
                     <td>
-                        <a href="" class="text-danger">
-                            <i class="bi bi-trash"></i>
-                        </a>
+                        {% if user.is_superuser %}
+
+                            <strong style="color: #7F01F4;">Admin</strong>
+
+                        {% else %}
+                            User
+                        {% endif %}
                     </td>
 
-                    </tr>
+                    <td>
+                        {% if user.is_active %}
 
-                    {% empty %} 
-                                     if user is empty  --> 
-                    <!-- <tr>
-                        <td colspan="5">No users found</td>
+                            Active
+
+                        {% else %}
+
+                            Disabled
+                            
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.is_active %}
+                            <a class="btn btn-secondary" href="{% url 'disable_user' user.id %}">
+                                Disable
+                            </a>
+
+                        {% else %}
+
+                            <a class="btn btn-success" href="{% url 'enable_user' user.id %}">
+                                Enable
+                            </a>
+
+                        {% endif %}
+                        
+                        <a class="btn btn-danger" href="{% url 'delete_user' user.id %}"
+                        onclick="return confirm('Are you sure?')">
+                        Delete
+                        </a>
+                    </td>
                     </tr>
-                    
                     {% endfor %}
                 </tbody>
                 </table>
@@ -87,4 +104,4 @@
     </div>
 
 
-{% endblock %} -->
+{% endblock %}

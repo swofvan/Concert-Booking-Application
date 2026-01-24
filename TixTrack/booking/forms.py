@@ -43,18 +43,18 @@ class RegisterForm(UserCreationForm):
 #----------------------------------------------------------------------------------------------------------------  Booking
 
 
-class BookingForm(forms.ModelForm):
-    class Meta:
-        model = Booking
-        fields = ['user','show', 'tickets']
+# class BookingForm(forms.ModelForm):
+#     class Meta:
+#         model = Booking
+#         fields = ['user','show', 'tickets']
 
-    def clean_tickets(self):                                  # ticket validation moved to FORM
-        tickets = self.cleaned_data.get('tickets')
-        if tickets > 3:
-            raise forms.ValidationError("Maximum 3 tickets allowed")
-        if tickets < 1:
-            raise forms.ValidationError("At least 1 ticket required")
-        return tickets
+#     def clean_tickets(self):                                  # ticket validation moved to FORM
+#         tickets = self.cleaned_data.get('tickets')
+#         if tickets > 3:
+#             raise forms.ValidationError("Maximum 3 tickets allowed")
+#         if tickets < 1:
+#             raise forms.ValidationError("At least 1 ticket required")
+#         return tickets
 
 
 #----------------------------------------------------------------------------------------------------------------  register
