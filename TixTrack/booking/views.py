@@ -33,6 +33,27 @@ from .authentication import CsrfExemptSessionAuthentication
 
 # Create your views here.
 
+
+# --------------------------------------------------------------------------------------------------------------  user info api
+
+# @api_view(['GET'])
+# @authentication_classes([SessionAuthentication])
+# @permission_classes([IsAuthenticated])
+# def current_user(request):
+#     user = request.user
+#     return Response({
+#         "id": user.id,
+#         "username": user.username,
+#         "email": user.email,
+#         "is_superuser": user.is_superuser
+#     })
+
+@api_view(['GET'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def check_login(request):
+    return Response({"logged_in": True})
+
 # --------------------------------------------------------------------------------------------------------------  admin check
 
 def superuser_required(view_func):
@@ -193,14 +214,14 @@ def user_login(request):
 
     if not email or not password:
         return Response({"error": "email and password required"}, status=400)
-
+    
     try:
         user_obj = User.objects.get(email=email)
 
     except User.DoesNotExist:
         return Response({"error": "Invalid credentials"}, status=401)
 
-    login(request, user_obj)  # ------------------------------------------------------- creates Django session
+    login(request, user_obj)  #  creates Django session
 
     return Response({
         "message": "Login successful",

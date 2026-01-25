@@ -6,12 +6,29 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 
+// function Concert_list() {
+
+//     const [concert, setConcert] =useState([]);
+
+//     useEffect(() => {
+//         axios.get('http://127.0.0.1:8000/api/concerts')
+//             .then(response => {
+//                 setConcert(response.data);
+//             })
+//             .catch(error => {
+//                 console.log("Error fetching concerts:", error);
+//             })
+//     }, [])
+
 function Concert_list() {
 
     const [concert, setConcert] =useState([]);
 
     useEffect(() => {
-        axios.get('http://127.0.0.1:8000/api/concerts')
+        axios.get("http://localhost:8000/api/concerts", 
+            {
+                withCredentials: true
+            })
             .then(response => {
                 setConcert(response.data);
             })

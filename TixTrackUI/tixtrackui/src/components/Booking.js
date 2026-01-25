@@ -123,8 +123,12 @@ function BookTickets() {
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
+    const isTicketInvalid = tickets < 1 || tickets > 3 || (concert && tickets > concert.available_tickets);
+
      useEffect(() => {
-        axios.get(`http://127.0.0.1:8000/api/concerts/${concertId}/`,
+        
+        axios.get(// `http://127.0.0.1:8000/api/concerts/${concertId}/`,
+            `http://localhost:8000/api/concerts/${concertId}/`,
             {
                 withCredentials: true
             })
@@ -132,22 +136,53 @@ function BookTickets() {
         .then(response => 
             setConcert(response.data))
 
-        .catch(() => {
-            alert("Failed to load concert details");
-            navigate("/concerts");
+        .catch(err => {
+
+            if (err.response?.status === 401 || err.response?.status === 403) {
+            
+            alert("Please login to access this page.");
+            navigate("/login");
+            }
+            else {
+                alert("Failed to load concert details");
+                navigate("/concerts");
+            }
         });
     }, [concertId, navigate]);
+
+    // ------------------------------------------------------- Validation when tickets or concert change
+
+    useEffect(() => {
+        if (!concert) return;
+
+        if (tickets < 1 || tickets > 3) {
+            setErrorMessage("You can book between 1 and 3 tickets only");
+        }
+        else if (tickets > concert.available_tickets) {
+            setErrorMessage(`Only ${concert.available_tickets} tickets available`);
+        }
+        else {
+            setErrorMessage("");
+        }
+    }, [tickets, concert]);
+
+    // ------------------------------------------------------- Loading state
 
     if (!concert) {
         return <p>Loading...</p>;
     }
+    
 
     const handleTicketChange = (e) => {
         const value = Number(e.target.value);
 
         if (value < 1 || value > 3) {
             setErrorMessage("You can book between 1 and 3 tickets only");
-        } else {
+        }
+        else if (value > concert.available_tickets) {
+            setErrorMessage(`Only ${concert.available_tickets} tickets available`);
+        } 
+        else {
             setErrorMessage("");
         }
 
@@ -161,10 +196,16 @@ function BookTickets() {
             return;
         }
 
+        if (tickets > concert.available_tickets) {
+            setErrorMessage(`Only ${concert.available_tickets} tickets available`);
+            return;
+        }
+
         setLoading(true);
 
         axios.post(
-            "http://127.0.0.1:8000/create_booking/",
+            // "http://127.0.0.1:8000/create_booking/",
+            "http://localhost:8000/create_booking/",
             {
                 show: concert.id,     
                 tickets: tickets
@@ -192,6 +233,7 @@ function BookTickets() {
 
         .finally(() => setLoading(false));
     };
+    
 
     return (
         <div style={{ backgroundColor: "#e9f2ff", minHeight: "100vh" }}>
@@ -214,34 +256,36 @@ function BookTickets() {
                                 <p>{concert.artists}</p>
                                 <p className="text-muted">{concert.date_time}</p>
                                 <p>Price per ticket: ₹{concert.price}</p>
-                                <label style={{display:'inline'}}>Number Of tickets: </label> 
-                                &nbsp;
-                                <input 
-                                style={{display:'inline'}}
-                                    min='0'
-                                    type="number"
-                                    value={tickets}
-                                    onChange={handleTicketChange}
-                                    className="form-control w-25 mx-auto my-3"
-                                />
 
-                                {!errorMessage && tickets > 0 && (
-                                    <p>Total Price: <b>₹{concert.price * tickets}</b></p>
-                                )}
+                                    <label style={{display:'inline'}}>Number Of tickets: </label> 
+                                    &nbsp;
+                                    <input 
+                                    style={{display:'inline'}}
+                                        min='0'
+                                        type="number"
+                                        value={tickets}
+                                        onChange={handleTicketChange}
+                                        className="form-control w-25 mx-auto my-3"
+                                    />
 
-                                {errorMessage?
-                                    <div className="alert alert-danger">
-                                        {errorMessage}
-                                    </div>
-                                    : '' }
+                                    {!errorMessage && tickets > 0 && (
+                                        <p>Total Price: <b>₹{concert.price * tickets}</b></p>
+                                    )}
 
-                                <button
-                                    className="btn btn-primary btn-block"
-                                    onClick={bookTickets}
-                                    disabled={loading || errorMessage}
-                                >
-                                    Book Tickets
-                                </button>
+                                    {errorMessage?
+                                        <div className="alert alert-danger">
+                                            {errorMessage}
+                                        </div>
+                                        : '' }
+
+                                    <button
+                                        className="btn btn-primary btn-block"
+                                        onClick={bookTickets}
+                                        // disabled={loading || errorMessage}
+                                        disabled={loading || isTicketInvalid}
+                                    >
+                                        Book Tickets
+                                    </button>
                             </div>
                         </div>
         

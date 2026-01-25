@@ -34,11 +34,13 @@ urlpatterns = [
 
     path('api/concerts', views.concert_list_api, name='concert_list_api'),
     path('api/concerts/<int:id>/', views.concert_detail),
+    
     path('register/', views.register, name='register'),
-
     path('login/', views.user_login, name='login'),
     path('logout/', views.user_logout, name='logout'),
 
+    # path('api/current_user/', views.current_user, name='current_user'),
+    path('api/check_login/', views.check_login, name='check_login'),
     
     path('create_booking/', views.create_booking, name='create_booking'),
 
