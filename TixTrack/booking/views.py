@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import render, redirect
 
 from .forms import ConcertForm, RegisterForm
@@ -29,6 +30,23 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpResponseForbidden
 from .authentication import CsrfExemptSessionAuthentication
 
+
+# ---------------------------------------------------------------- QR
+
+import qrcode
+import io
+import base64
+
+# ---------------------------------------------------------------- Pdf
+
+from django.http import HttpResponse
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+from io import BytesIO
+
+# -----------------------------------------------------------------  email
+
+from django.core.mail import send_mail
 
 
 # Create your views here.
@@ -331,6 +349,8 @@ def create_booking(request):
     concert.total_tickets -= tickets
     concert.save()
 
+    # send_booking_email(request.user, booking)    # send confirmation email
+
     return Response(
         BookingSerializer(booking).data,
         status=status.HTTP_201_CREATED
@@ -435,3 +455,175 @@ def delete_user(request, user_id):
     user.delete()
 
     return redirect('users_list')
+
+
+# --------------------------------------------------------------------------------------------------------------  QR code generator
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def booking_qr(request, booking_id):
+    try:
+        booking = Booking.objects.get(id=booking_id, user=request.user)
+    
+    except Booking.DoesNotExist:
+        return Response({"error": "Booking not found"}, status=404)
+
+    # Prepares the string content for the QR code.
+    qr_data = f"Booking ID: {booking.id}\nUser: {booking.user.email}\nTickets: {booking.tickets}"
+
+    # Generate QR code
+    qr = qrcode.QRCode(
+        version=1,    # Determines QR code size, 1 is small, automatically scales if fit=True.
+        box_size=10,  # How many pixels each “box” of the QR code is.
+        border=4      # Thickness of the border around the QR code.
+    )
+    qr.add_data(qr_data)  # Adds the string we want to encode
+    qr.make(fit=True)     # Generates the QR code layout automatically to fit the data.
+
+    img = qr.make_image(fill='black', back_color='white')   # Converts the QR code into an image object
+
+    # Convert image to base64 so it can be displayed in React
+    buffered = io.BytesIO()  #Creates an in-memory file (BytesIO)
+    img.save(buffered, format="PNG")   # Saves the QR image into this memory buffer as PNG
+    img_str = base64.b64encode(buffered.getvalue()).decode()   # Converts the binary image data to a base64 string.  .decode() converts bytes to a string so it can be sent in JSON. 
+
+    return Response({
+        "qr_code": f"data:image/png;base64,{img_str}",
+        "concert_id": booking.show.id
+        })
+
+
+# --------------------------------------------------------------------------------------------------------------  PDF ticket generator
+
+# def download_ticket_pdf(request, booking_id):
+#     # Get the booking object
+#     booking = get_object_or_404(Booking, id=booking_id, user=request.user)
+
+#     # Render HTML template with booking & concert data
+#     template = get_template('ticket_pdf.html')
+#     html = template.render({
+#         'booking': booking,
+#         'concert': booking.show,  # assuming 'show' is the concert
+#     })
+
+#     # PDF buffer
+#     buffer = BytesIO()
+
+#     # Generate PDF
+#     pisa_status = pisa.CreatePDF(html, dest=buffer)
+
+#     # Return PDF
+#     if pisa_status.err:
+#         return HttpResponse('PDF creation error!')
+#     else:
+#         response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+#         response['Content-Disposition'] = f'attachment; filename="ticket_{booking.id}.pdf"'
+#         return response
+
+
+
+def download_ticket_pdf(request, booking_id):
+    # Get the booking object
+    booking = get_object_or_404(Booking, id=booking_id, user=request.user)
+    
+    # ---------------- Generate QR code (reuse logic from booking_qr) ----------------
+
+    qr_data = f"Booking ID: {booking.id}\nUser: {booking.user.email}\nTickets: {booking.tickets}"
+    
+    qr = qrcode.QRCode(version=1, box_size=10, border=4)
+    qr.add_data(qr_data)
+    qr.make(fit=True)
+    # img = qr.make_image(fill='black', back_color='white')
+    img = qr.make_image(fill_color="black", back_color="white")
+    
+    buffered = BytesIO()
+    img.save(buffered, format="PNG")
+    qr_code_base64 = base64.b64encode(buffered.getvalue()).decode()
+
+    # ---------------- Load logo and convert to base64 ----------------
+
+    logo_path = settings.BASE_DIR / 'booking' / 'static' / 'TixTrack_Logo.svg'
+    with open(logo_path, 'rb') as logo_file:
+        logo_base64 = base64.b64encode(logo_file.read()).decode()
+        
+    # ---------------- Render PDF template ----------------
+    
+    template = get_template('ticket_pdf.html')
+    html = template.render({
+        'booking': booking,
+        'concert': booking.show,
+        'qr_code': f'data:image/png;base64,{qr_code_base64}',  # pass QR code to template
+        'logo': f'data:image/svg+xml;base64,{logo_base64}'    # pass logo
+    })
+
+    # ---------------- Generate PDF ----------------
+    buffer = BytesIO()
+    # pisa_status = pisa.CreatePDF(html, dest=buffer)
+    pisa_status = pisa.CreatePDF(html, dest=buffer, encoding='utf-8')
+
+    if pisa_status.err:
+        return HttpResponse('PDF creation error!')
+    else:
+        response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="ticket_{booking.id}.pdf"'
+        return response
+
+# --------------------------------------------------------------------------------------------------------------  email
+
+# def send_booking_email(user, booking):
+#     subject = "🎫 Booking Confirmed – TixTrack"
+#     message = f"""
+# Hi {user.username},
+
+# Your booking was successful!
+
+# Booking ID: {booking.id}
+# Concert: {booking.show.concert_name}
+# Tickets: {booking.tickets}
+
+# Your ticket is now available in your account.
+
+# Thanks for choosing TixTrack!
+# """
+#     from_email = "swofvan1201pdf@gmail.com"
+#     recipient_list = [user.email]
+
+#     send_mail(
+#         subject,
+#         message,
+#         from_email,
+#         recipient_list,
+#         fail_silently=False
+#     )
+
+# from django.core.mail import EmailMultiAlternatives
+# from django.template.loader import render_to_string
+# from django.conf import settings
+
+# def send_booking_email(user, booking, qr_code_url):
+#     subject = "Booking Confirmed – TixTrack"
+#     from_email = settings.EMAIL_HOST_USER
+#     to = [user.email]
+
+#     concert = booking.show
+
+#     context = {
+#         "user": user,
+#         "booking": booking,
+#         "concert": concert,
+#         "qr_code": qr_code_url,
+#         "download_url": f"http://localhost:8000/download_ticket/{booking.id}/",
+#         "logo_url": "https://localhost:3000/static/images/TixTrack_Logo.png"
+#     }
+
+#     html_content = render_to_string("emails/ticket_email.html", context)
+
+#     email = EmailMultiAlternatives(
+#         subject=subject,
+#         body="Your ticket is attached.",  # fallback text
+#         from_email=from_email,
+#         to=to,
+#     )
+
+#     email.attach_alternative(html_content, "text/html")
+#     email.send()

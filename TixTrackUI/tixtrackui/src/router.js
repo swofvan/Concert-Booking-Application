@@ -8,6 +8,8 @@ import Login from "./components/auth/Login";
 
 import BookTickets from "./components/Booking";
 
+import Ticket from "./components/Ticket";
+
 const router = createBrowserRouter([
     { path: '', element: <App/> },
     { path: 'concerts', element: <Concert_list/> },
@@ -17,6 +19,8 @@ const router = createBrowserRouter([
     { path: 'login', element: <Login/> },
 
     { path: '/booking/:concertId', element: <BookTickets/> },
+
+    { path: '/ticket/:bookingId', element: <Ticket/> },
 ]);
 
 export default router;

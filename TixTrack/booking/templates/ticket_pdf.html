@@ -1,0 +1,323 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ticket - {{ booking.id }}</title>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <style type="text/css">
+        @page {
+            size: A5 portrait;
+            margin: 1.5cm 1.8cm 2cm 1.8cm;
+        }
+
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 13px;
+            color: #222;
+            line-height: 1.45;
+            margin: 0;
+            padding: 0;
+        }
+
+        .ticket-container {
+            border-radius: 12px;
+            max-width: 480px;
+            margin: 0 auto;
+            background: #ffffff;
+            overflow: hidden;
+        }
+
+        .qr-code {
+            width: 148px;
+            height: 148px;
+            border: 1px solid #ccc;
+            padding: 8px;
+            background: #fff;
+        }
+
+        .event-title {
+            font-size: 21px;
+            margin-bottom: 1.25rem;
+            color: #111;
+            line-height: 1.2;
+        }
+
+        .detail-row {
+            padding: 0.6rem 0;
+            font-size: 13.5px;
+        }
+
+        .detail-label {
+            color: #555;
+            font-weight: 500;
+            min-width: 90px;
+            display: inline-block;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: #111;
+        }
+
+        .icon {
+            display: inline-block;
+            width: 24px;
+            text-align: center;
+            margin-right: 0.4rem;
+            color: #666;
+            font-size: 14px;
+        }
+
+    </style>
+
+    {% load static %}
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+
+<div class="container my-4">
+    <div class="ticket-container">
+
+        <div class="bg-light p-4 text-center border-bottom">
+
+            {% if logo_base64 %}
+                <img src="{% static 'TixTrack_Logo.svg' %}" alt="Logo" class="img-fluid mb-3" style="max-width: 135px;">
+            {% else %}
+                <div class="font-weight-bold mb-3" style="font-size: 22px; color: #1E052F;">
+                    TixTrack
+                </div>
+            {% endif %}
+
+            <div class="mb-3">
+                <img src="{{ qr_code }}" alt="QR Code" class="qr-code mx-auto d-block">
+            </div>
+
+            <h5 class="font-weight-bold text-danger mb-1">Booking ID: {{ booking.id }}</h5>
+            <p class="text-muted small mb-0">Scan this QR code at the entrance</p>
+        </div>
+
+        <div class="p-4">
+
+            <h1 class="event-title text-center">{{ concert.concert_name|default:"Concert" }}</h1>
+
+            <div class="detail-row">
+                <span class="icon"><i class="bi bi-person-video"></i></span>
+                <span class="detail-label">Artists:</span>
+                <span class="detail-value">{{ concert.artists|default:"—" }}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="icon"><i class="bi bi-bookmark"></i></span>
+                <span class="detail-label">Category:</span>
+                <span class="detail-value">{{ concert.category|default:"—" }}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="icon"><i class="bi bi-geo-alt"></i></span>
+                <span class="detail-label">Venue:</span>
+                <span class="detail-value">{{ concert.venue|default:"—" }}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="icon"><i class="bi bi-calendar3"></i></span>
+                <span class="detail-label">Date & Time:</span>
+                <span class="detail-value">
+                    {{ concert.date_time|date:"D, d M Y • h:i A"|default:"—" }}
+                </span>
+            </div>
+
+            {% if booking.tickets %}
+            <div class="detail-row">
+                <span class="icon"><i class="bi bi-ticket"></i></span>
+                <span class="detail-label">Tickets:</span>
+                <span class="detail-value">{{ booking.tickets }}</span>
+            </div>
+            {% endif %}
+
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Tixtrack Ticket</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #e8ecf1;
+            padding: 40px 20px;
+        }
+
+        .ticket-container {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        
+        .ticket-card {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #fefefe;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Logo Section */
+        .logo-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo-text {
+            font-size: 42px;
+            font-weight: bold;
+            color: #2d1b4e;
+            letter-spacing: 1px;
+        }
+        
+        .logo-butterfly {
+            color: #ff8c42;
+            font-size: 28px;
+        }
+        
+        /* QR Code Section */
+        .qr-section {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .qr-section img {
+            width: 180px;
+            height: 180px;
+            margin: 10px auto;
+            display: block;
+        }
+        
+        .booking-id {
+            font-size: 14px;
+            color: #666;
+            margin: 15px 0 8px 0;
+        }
+        
+        .scan-text {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 30px;
+        }
+        
+        /* Concert Title */
+        .concert-title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2d2d2d;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        /* Info Rows */
+        .info-item {
+            display: table;
+            width: 100%;
+            margin-bottom: 18px;
+        }
+        
+        .info-icon {
+            display: table-cell;
+            width: 40px;
+            vertical-align: middle;
+            color: #666;
+            font-size: 18px;
+        }
+        
+        .info-text {
+            /* display: table-cell; */
+            vertical-align: middle;
+            color: #4a4a4a;
+            font-size: 15px;
+            padding-left: 5px;
+        }
+        
+        /* Icons using Unicode symbols */
+        .icon-artist::before {
+            font-size: 18px;
+        }
+        
+        .icon-category::before {
+            font-size: 18px;
+        }
+        
+        .icon-location::before {
+            font-size: 18px;
+        }
+        
+        .icon-datetime::before {
+            font-size: 18px;
+        }
+                
+    </style>
+
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    
+
+</head>
+<body>
+
+    <div class="ticket-container">
+        <div class="ticket-card">
+            
+            <div class="logo-section">
+                <div class="logo-text">
+                    <!-- Tixtrack<span class="logo-butterfly">🦋</span> -->
+                    <img src="{{ logo }}" alt="Tixtrack Logo" style="max-width: 150px;">
+                </div>
+            </div>
+            
+            <div class="qr-section">
+                <img src="{{ qr_code }}" alt="QR Code">
+                <p class="booking-id">Booking ID: {{ booking.id }}</p>
+                <p class="scan-text">Scan this QR code at the concert</p>
+            </div>
+            
+            <div class="concert-title">{{ concert.concert_name }}</div>
+            
+            <div class="info-item">
+                <div class="info-icon icon-artist"><i className="bi bi-person-video"></i></div>
+                <div class="info-text">{{ concert.artists }}</div>
+            </div>
+            
+            <div class="info-item">
+                <div class="info-icon icon-category"><i className="bi bi-bookmark"></i></div>
+                <div class="info-text">{{ concert.category }}</div>
+            </div>
+            
+            <div class="info-item">
+                <div class="info-icon icon-location"><i className="bi bi-geo-alt"></i></div>
+                <div class="info-text">{{ concert.venue }}</div>
+            </div>
+            
+            <div class="info-item">
+                <div class="info-icon icon-datetime"><i className="bi bi-calendar"></i></div>
+                <!-- <div class="info-text">{{ concert.date|date:"d/m/Y" }}, {{ concert.time|time:"H:i" }}</div> -->
+                <div class="info-text">{{ concert.date_time|date:"D, d M Y • h:i A"|default:"—" }}</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -214,9 +214,10 @@ function BookTickets() {
                 withCredentials: true  
             }
         )
-        .then(() => {
+        .then((response) => {
             alert("Booking created successfully!");
-            navigate("/concerts");
+            const bookingId = response.data.id;        
+            navigate(`/ticket/${bookingId}`);
         })
         // .catch(err => {
         //     alert(err.response?.data?.error || "Booking failed");

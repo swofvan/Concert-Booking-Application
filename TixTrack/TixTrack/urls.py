@@ -43,6 +43,8 @@ urlpatterns = [
     path('api/check_login/', views.check_login, name='check_login'),
     
     path('create_booking/', views.create_booking, name='create_booking'),
+    path('bookingqrcode/<int:booking_id>/', views.booking_qr, name='booking_qr'),
+    path('download_ticket/<int:booking_id>/', views.download_ticket_pdf, name='download_ticket_pdf'),
 
     path('bookings_list/', views.booking_list, name='bookings_list'),
 
