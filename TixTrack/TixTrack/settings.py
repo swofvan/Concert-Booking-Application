@@ -367,3 +367,14 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     ),
 }
+
+
+# Email Configuration for Mailtrap
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+EMAIL_HOST_USER = '5f75dfcd996789'
+EMAIL_HOST_PASSWORD = '99c6985a030d8f'
+EMAIL_PORT = '2525'
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+DEFAULT_FROM_EMAIL = 'tixtrack@gmail.com'  # Can be any email

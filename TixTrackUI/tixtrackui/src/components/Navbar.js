@@ -60,26 +60,16 @@ function Navbar() {
                 <div className="collapse navbar-collapse" id="navbarTogglerDemo01">
                     
                     <ul className="navbar-nav mx-auto mt-2 mt-lg-0">
-                    <li className="nav-item active">
+                    <li className="nav-item">
                         <NavLink to={'/'} className="nav-link">Home</NavLink>
                     </li>
                     <li className="nav-item">
                         <NavLink to={'/concerts'} className="nav-link">Concerts</NavLink>
                     </li>
                     <li className="nav-item">
-                        <NavLink to={'/'} className="nav-link">Link</NavLink>
+                        <NavLink to={'/'} className="nav-link">About us</NavLink>
                     </li>
                     </ul>
-                    {/* <form className="form-inline my-2 my-lg-0">
-                    <input className="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search"/>
-                    <button className="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-                    </form> */}
-                
-
-                    {/* <Link to={'/register'} className="btn text-white" data-toggle="tooltip" title="Signup" 
-                        style={{backgroundColor: '#7F01F4', height:'35px', width:'35px', borderRadius:'40px',display:'flex',alignItems:'center', justifyContent:'center', fontSize:'20px'}}>
-                            <i className="bi bi-person-fill"></i>
-                    </Link> */}
 
                     {user ? (
                         

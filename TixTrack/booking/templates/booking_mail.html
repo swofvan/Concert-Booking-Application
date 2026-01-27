@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #e9f2ff;
+            font-family: Arial, sans-serif;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 15px;
+            padding: 40px 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .text-center {
+            text-align: center;
+        }
+        .logo {
+            width: 147px;
+            margin: 0 auto 20px;
+            display: block;
+        }
+        .qr-code {
+            width: 150px;
+            height: 150px;
+            margin: 20px auto;
+            display: block;
+        }
+        .booking-id {
+            font-size: 15px;
+            color: #333;
+            margin: 15px 0 5px;
+        }
+        .instruction {
+            font-size: 13px;
+            color: #777;
+            margin-bottom: 35px;
+        }
+        .concert-name {
+            font-size: 38px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 30px;
+        }
+        .detail-item {
+            display: table;
+            width: 100%;
+            margin-bottom: 18px;
+            font-size: 16px;
+            color: #333;
+        }
+        .detail-icon {
+            display: table-cell;
+            width: 30px;
+            vertical-align: middle;
+        }
+        .detail-text {
+            display: table-cell;
+            vertical-align: middle;
+            padding-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="container">
+        <div class="card">
+            <div class="text-center">
+                
+                <!-- Logo -->
+                <img src="{{ logo }}" alt="TixTrack Logo" class="logo"/>
+
+                <!-- QR Code -->
+                <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" class="qr-code" />
+                
+                <!-- Booking ID -->
+                <p class="booking-id">Booking ID: {{ booking.id }}</p>
+                
+                <!-- Instruction -->
+                <p class="instruction">Scan this QR code at the concert</p>
+                
+                <!-- Concert Name -->
+                <h1 class="concert-name">{{ concert.concert_name }}</h1>
+            </div>
+
+            <!-- Concert Details -->
+            <div>
+                <!-- Artist -->
+                <div class="detail-item">
+                    <div class="detail-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </div>
+                    <div class="detail-text">{{ concert.artists }}</div>
+                </div>
+
+                <!-- Genre -->
+                <div class="detail-item">
+                    <div class="detail-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2">
+                            <path d="M9 18V5l12-2v13"></path>
+                            <circle cx="6" cy="18" r="3"></circle>
+                            <circle cx="18" cy="16" r="3"></circle>
+                        </svg>
+                    </div>
+                    <div class="detail-text">{{ concert.category }}</div>
+                </div>
+
+                <!-- Location -->
+                <div class="detail-item">
+                    <div class="detail-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                    </div>
+                    <div class="detail-text">{{ concert.venue }}</div>
+                </div>
+
+                <!-- Date & Time -->
+                <div class="detail-item">
+                    <div class="detail-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                    </div>
+                    <div class="detail-text">{{ concert.date_time|date:"d/m/Y, H:i:s" }}</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

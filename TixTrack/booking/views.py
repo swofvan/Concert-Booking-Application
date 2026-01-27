@@ -47,7 +47,9 @@ from io import BytesIO
 # -----------------------------------------------------------------  email
 
 from django.core.mail import send_mail
-
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+import os
 
 # Create your views here.
 
@@ -349,7 +351,7 @@ def create_booking(request):
     concert.total_tickets -= tickets
     concert.save()
 
-    # send_booking_email(request.user, booking)    # send confirmation email
+    send_booking_email(request.user, booking)    # send confirmation email
 
     return Response(
         BookingSerializer(booking).data,
@@ -570,60 +572,60 @@ def download_ticket_pdf(request, booking_id):
 
 # --------------------------------------------------------------------------------------------------------------  email
 
-# def send_booking_email(user, booking):
-#     subject = "🎫 Booking Confirmed – TixTrack"
-#     message = f"""
-# Hi {user.username},
 
-# Your booking was successful!
+def send_booking_email(user, booking):
+    """
+    Helper function to send booking confirmation email with QR code.
+    """
+    # Generate QR code
+    qr_data = f"Booking ID: {booking.id}\nUser: {user.email}\nTickets: {booking.tickets}"
+    qr = qrcode.QRCode(version=1, box_size=10, border=4)
+    qr.add_data(qr_data)
+    qr.make(fit=True)
+    img = qr.make_image(fill='black', back_color='white')
+    
+    # Convert QR code to base64
+    buffered = io.BytesIO()
+    img.save(buffered, format="PNG")
+    qr_code_base64 = base64.b64encode(buffered.getvalue()).decode()
+    
+    # Email details
+    subject = f"Booking Confirmation - {booking.show.concert_name}"
+    from_email = settings.DEFAULT_FROM_EMAIL  # Change this to your email
+    recipient_list = [user.email]
 
-# Booking ID: {booking.id}
-# Concert: {booking.show.concert_name}
-# Tickets: {booking.tickets}
+    logo_path = os.path.join(
+    settings.BASE_DIR,
+    'static',
+    'TixTrack_Logo.svg'
+    )  # Update this path
+    
+    logo_base64 = ""
 
-# Your ticket is now available in your account.
+    if os.path.exists(logo_path):
+        with open(logo_path, 'rb') as logo_file:
+            logo_base64 = base64.b64encode(logo_file.read()).decode()
+    else:
+        print("Logo NOT found:", logo_path)
 
-# Thanks for choosing TixTrack!
-# """
-#     from_email = "swofvan1201pdf@gmail.com"
-#     recipient_list = [user.email]
+    html_message = render_to_string('booking_mail.html', {
+        'booking': booking,
+        'user': user,
+        'concert': booking.show,
+        'qr_code': qr_code_base64,
+        'logo': f'data:image/svg+xml;base64,{logo_base64}',    # pass logo
+    })
+    
+    # Create plain text version
+    plain_message = strip_tags(html_message)
+    
+    # Send email
+    send_mail(
+        subject, 
+        plain_message, 
+        from_email, 
+        recipient_list, 
+        html_message=html_message
+    )
 
-#     send_mail(
-#         subject,
-#         message,
-#         from_email,
-#         recipient_list,
-#         fail_silently=False
-#     )
-
-# from django.core.mail import EmailMultiAlternatives
-# from django.template.loader import render_to_string
-# from django.conf import settings
-
-# def send_booking_email(user, booking, qr_code_url):
-#     subject = "Booking Confirmed – TixTrack"
-#     from_email = settings.EMAIL_HOST_USER
-#     to = [user.email]
-
-#     concert = booking.show
-
-#     context = {
-#         "user": user,
-#         "booking": booking,
-#         "concert": concert,
-#         "qr_code": qr_code_url,
-#         "download_url": f"http://localhost:8000/download_ticket/{booking.id}/",
-#         "logo_url": "https://localhost:3000/static/images/TixTrack_Logo.png"
-#     }
-
-#     html_content = render_to_string("emails/ticket_email.html", context)
-
-#     email = EmailMultiAlternatives(
-#         subject=subject,
-#         body="Your ticket is attached.",  # fallback text
-#         from_email=from_email,
-#         to=to,
-#     )
-
-#     email.attach_alternative(html_content, "text/html")
-#     email.send()
+    print(f"Email sent successfully to {user.email}")

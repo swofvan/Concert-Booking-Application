@@ -5,6 +5,8 @@ import "../App.css";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
+import checkAuth from "./auth/checkAuth";
+
 // function BookTickets() {
 
 //     const navigate = useNavigate();
@@ -298,4 +300,4 @@ function BookTickets() {
     );
 }
 
-export default BookTickets;
+export default checkAuth(BookTickets);

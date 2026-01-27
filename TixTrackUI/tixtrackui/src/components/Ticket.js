@@ -5,6 +5,8 @@ import Navbar from "./Navbar";
 
 import logo from "../images/TixTrack_Logo.svg";
 
+import checkAuth from "./auth/checkAuth";
+
 
 const Ticket = () => {
     const { bookingId } = useParams();
@@ -98,4 +100,4 @@ const Ticket = () => {
     );
 };
 
-export default Ticket;
+export default checkAuth(Ticket);
