@@ -10,6 +10,7 @@ import "../App.css";
 import Cookies from "js-cookie"; 
 
 
+
 function Navbar() {
 
     const dispatch = useDispatch();
@@ -29,7 +30,8 @@ function Navbar() {
 
             headers: {
                 // Authorization: `Token ${token}`,
-                 "X-CSRFToken": csrftoken,          // --------------- send CSRF token
+                // "X-CSRFToken": csrftoken,          // --------------- send CSRF token
+                "X-CSRFToken": Cookies.get("csrftoken"),
             }
 
         })

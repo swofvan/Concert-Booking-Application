@@ -43,10 +43,10 @@ function Concert_list() {
             <Navbar/>
 
             <div className="container" id="concertlist">
-                <div className='row mt-5'>
+                <div className='row mt-50'>
                 <div className='col'>
 
-                    <div className="card-deck">
+                    <div className="card-deck mt-5" style={{gap:'20px', justifyContent:'center', display:'flex', flexWrap:'wrap'}}>
                         
                         {concert.map(concert =>(
 

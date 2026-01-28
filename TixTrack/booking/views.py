@@ -234,14 +234,23 @@ def user_login(request):
 
     if not email or not password:
         return Response({"error": "email and password required"}, status=400)
-    
+       
     try:
         user_obj = User.objects.get(email=email)
 
     except User.DoesNotExist:
         return Response({"error": "Invalid credentials"}, status=401)
+    
+    # user = authenticate(username=user_obj.username, password=password)
+    user = authenticate(request, username=user_obj.username, password=password)
 
-    login(request, user_obj)  #  creates Django session
+    if user is None:
+        return Response({"error": "Invalid credentials"}, status=401)
+
+
+    # login(request, user_obj)  #  creates Django session
+    login(request, user)
+
 
     return Response({
         "message": "Login successful",
@@ -252,74 +261,29 @@ def user_login(request):
 
 
 # -------------------------------------------------------------------------------------------------------------- Logout
+# @csrf_exempt
+# @api_view(['POST'])
+# @authentication_classes([SessionAuthentication])
+# @permission_classes([IsAuthenticated])
+# def user_logout(request):
+#     logout(request)                # -------------------------------- ends the session
+#     return Response(
+#         {"message": "Logout successful"},
+#         status=status.HTTP_200_OK
+#     )
+
 @csrf_exempt
 @api_view(['POST'])
-@authentication_classes([SessionAuthentication])
+@authentication_classes([CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
 def user_logout(request):
-    logout(request)                # -------------------------------- ends the session
+    logout(request)
     return Response(
         {"message": "Logout successful"},
         status=status.HTTP_200_OK
     )
 
 # ------------------------------------------------------------------------------------------------------ Booking
-
-# @api_view(['POST'])
-# @authentication_classes([CsrfExemptSessionAuthentication])
-# @permission_classes([IsAuthenticated])
-# def create_booking(request):
-
-#     print("LOGGED USER:", request.user)
-
-#     concert_id = request.data.get('show')
-#     tickets = request.data.get('tickets')
-
-#     if not concert_id or not tickets:
-#         return Response(
-#             {"error": "show and tickets are required"},
-#             status=status.HTTP_400_BAD_REQUEST
-#         )
-
-#     concert = get_object_or_404(Concert, id=concert_id)
-
-#     # attach user manually (never trust frontend)
-#     form = BookingForm({
-#         'user': request.user.id,
-#         'show': concert.id,
-#         'tickets': tickets
-#     })
-
-#     if not form.is_valid():
-#         return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
-
-#     tickets = form.cleaned_data['tickets']
-
-#     if concert.total_tickets < tickets:
-#         return Response(
-#             {"error": "Not enough tickets available"},
-#             status=status.HTTP_400_BAD_REQUEST
-#         )
-
-#     total_price = concert.price * tickets
-
-#     booking = Booking.objects.create(
-#         user=request.user,
-#         show=concert,
-#         tickets=tickets,
-#         total_price=total_price,
-#         is_confirmed=False
-#     )
-
-#     concert.total_tickets -= tickets
-#     concert.save()
-
-#     serializer = BookingSerializer(
-#         booking, 
-#         context={
-#             'request': request
-#             })
-#     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 @api_view(['POST'])
 @authentication_classes([CsrfExemptSessionAuthentication])
@@ -495,34 +459,7 @@ def booking_qr(request, booking_id):
         })
 
 
-# --------------------------------------------------------------------------------------------------------------  PDF ticket generator
-
-# def download_ticket_pdf(request, booking_id):
-#     # Get the booking object
-#     booking = get_object_or_404(Booking, id=booking_id, user=request.user)
-
-#     # Render HTML template with booking & concert data
-#     template = get_template('ticket_pdf.html')
-#     html = template.render({
-#         'booking': booking,
-#         'concert': booking.show,  # assuming 'show' is the concert
-#     })
-
-#     # PDF buffer
-#     buffer = BytesIO()
-
-#     # Generate PDF
-#     pisa_status = pisa.CreatePDF(html, dest=buffer)
-
-#     # Return PDF
-#     if pisa_status.err:
-#         return HttpResponse('PDF creation error!')
-#     else:
-#         response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
-#         response['Content-Disposition'] = f'attachment; filename="ticket_{booking.id}.pdf"'
-#         return response
-
-
+# ----------------------------------------------------------------------------------------------  PDF ticket generator
 
 def download_ticket_pdf(request, booking_id):
     # Get the booking object
