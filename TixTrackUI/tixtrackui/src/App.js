@@ -2,6 +2,7 @@ import logo from './logo.svg';
 import './App.css';
 
 import Navbar from './components/Navbar';
+import Footer from './components/footer';
 
 import carouselImg1 from "./images/carouselimg1.png";
 import carouselImg2 from "./images/carouselimg2.png";
@@ -11,7 +12,7 @@ import carouselImg4 from "./images/carouselimg4.png";
 
 function App() {
   return (
-    <div>
+    <div style={{backgroundColor:'#e9f2ff', minHeight:'100vh'}}>
 
       <Navbar/>
 
@@ -54,6 +55,8 @@ function App() {
           </div>
         </div>
       </div>
+
+      <Footer/>
 
     </div>
   );

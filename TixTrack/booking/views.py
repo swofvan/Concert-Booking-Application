@@ -19,8 +19,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 
-
-from rest_framework.authentication import SessionAuthentication
+from rest_framework.authtoken.models import Token
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from django.shortcuts import get_object_or_404
 
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -36,7 +36,7 @@ from .authentication import CsrfExemptSessionAuthentication
 import qrcode
 import io
 import base64
-
+from rest_framework.permissions import BasePermission
 # ---------------------------------------------------------------- Pdf
 
 from django.http import HttpResponse
@@ -56,18 +56,6 @@ import os
 
 # --------------------------------------------------------------------------------------------------------------  user info api
 
-# @api_view(['GET'])
-# @authentication_classes([SessionAuthentication])
-# @permission_classes([IsAuthenticated])
-# def current_user(request):
-#     user = request.user
-#     return Response({
-#         "id": user.id,
-#         "username": user.username,
-#         "email": user.email,
-#         "is_superuser": user.is_superuser
-#     })
-
 @api_view(['GET'])
 @authentication_classes([SessionAuthentication])
 @permission_classes([IsAuthenticated])
@@ -76,23 +64,35 @@ def check_login(request):
 
 # --------------------------------------------------------------------------------------------------------------  admin check
 
-def superuser_required(view_func):
-    def wrapper(request, *args, **kwargs):
+# def superuser_required(view_func):
+#     def wrapper(request, *args, **kwargs):
        
-        if not request.user.is_authenticated:
-            return HttpResponseForbidden("Please login first")
+#         if not request.user.is_authenticated:
+#             return HttpResponseForbidden("Please login first")
        
-        if request.user.is_superuser:
-            return view_func(request, *args, **kwargs)
+#         if request.user.is_superuser:
+#             return view_func(request, *args, **kwargs)
        
-        return HttpResponseForbidden("You must be superuser to access this page")
+#         return HttpResponseForbidden("You must be superuser to access this page")
     
-    return wrapper
+#     return wrapper
+
+
+class IsSuperUser(BasePermission):
+    def has_permission(self, request, view):
+        return (
+            request.user and
+            request.user.is_authenticated and
+            request.user.is_superuser
+        )
+
 
 
 # --------------------------------------------------------------------------------------------------------------   admin view
 
-@authentication_classes([CsrfExemptSessionAuthentication])
+# @authentication_classes([CsrfExemptSessionAuthentication])
+
+@permission_classes([IsSuperUser])
 def concertlist(request):
 
     query = request.GET.get('q')
@@ -149,7 +149,8 @@ def concert_detail(request, id):
 
 # --------------------------------------------------------------------------------------------------------------   Create
 
-@authentication_classes([CsrfExemptSessionAuthentication])
+# @authentication_classes([CsrfExemptSessionAuthentication])
+@permission_classes([IsSuperUser])
 def addconcerts(request):
     if request.method == 'POST':
         form = ConcertForm(request.POST, request.FILES)
@@ -168,7 +169,8 @@ def addconcerts(request):
 
 # --------------------------------------------------------------------------------------------------------------   edit
 
-@authentication_classes([CsrfExemptSessionAuthentication])
+# @authentication_classes([CsrfExemptSessionAuthentication])
+@permission_classes([IsSuperUser])
 def edit_concert(request,pk):
     concert= Concert.objects.get(pk=pk)
 
@@ -188,7 +190,8 @@ def edit_concert(request,pk):
 
 # -------------------------------------------------------------------------------------------------------------- delete
 
-@authentication_classes([CsrfExemptSessionAuthentication])
+# @authentication_classes([CsrfExemptSessionAuthentication])
+@permission_classes([IsSuperUser])
 def delete_concert(request, pk):
     concert = Concert.objects.get(pk=pk)
 
@@ -202,8 +205,7 @@ def delete_concert(request, pk):
 
 # -------------------------------------------------------------------------------------------------------------- Register
 
-# @csrf_exempt   ---------------------------------------------------------  already in settings CSRF_TRUSTED_ORIGINS
-
+# @authentication_classes([CsrfExemptSessionAuthentication])
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register(request):
@@ -225,7 +227,7 @@ def register(request):
 # -------------------------------------------------------------------------------------------------------------- Login
 
 @api_view(['POST'])
-@authentication_classes([CsrfExemptSessionAuthentication])
+# @authentication_classes([CsrfExemptSessionAuthentication])
 @permission_classes([AllowAny])
 def user_login(request):
 
@@ -241,52 +243,41 @@ def user_login(request):
     except User.DoesNotExist:
         return Response({"error": "Invalid credentials"}, status=401)
     
-    # user = authenticate(username=user_obj.username, password=password)
     user = authenticate(request, username=user_obj.username, password=password)
+
 
     if user is None:
         return Response({"error": "Invalid credentials"}, status=401)
 
 
-    # login(request, user_obj)  #  creates Django session
-    login(request, user)
-
+    token, _ = Token.objects.get_or_create(user=user)
 
     return Response({
         "message": "Login successful",
-        "email": user_obj.email,
-        "username": user_obj.username,
-        "is_superuser": user_obj.is_superuser,
+        "email": user.email,
+        "username": user.username,
+        "is_superuser": user.is_superuser,
+        "token": token.key
     }, status=200)
 
 
 # -------------------------------------------------------------------------------------------------------------- Logout
-# @csrf_exempt
-# @api_view(['POST'])
-# @authentication_classes([SessionAuthentication])
-# @permission_classes([IsAuthenticated])
-# def user_logout(request):
-#     logout(request)                # -------------------------------- ends the session
-#     return Response(
-#         {"message": "Logout successful"},
-#         status=status.HTTP_200_OK
-#     )
 
-@csrf_exempt
+
 @api_view(['POST'])
-@authentication_classes([CsrfExemptSessionAuthentication])
+@authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def user_logout(request):
-    logout(request)
-    return Response(
-        {"message": "Logout successful"},
-        status=status.HTTP_200_OK
-    )
+    try:
+        request.user.auth_token.delete()
+    except:
+        return Response({"error": "Token not found"}, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
 
 # ------------------------------------------------------------------------------------------------------ Booking
 
 @api_view(['POST'])
-@authentication_classes([CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
 def create_booking(request):
 
@@ -325,7 +316,7 @@ def create_booking(request):
 
 # -------------------------------------------------------------------------------------------------------------- Booking List
 
-@superuser_required
+@permission_classes([IsSuperUser])
 def booking_list(request):
     print("REQUEST USER:", request.user)
     print("USER:", request.user.is_superuser)
@@ -351,7 +342,7 @@ def booking_list(request):
 # -------------------------------------------------------------------------------------------------------------- users List
 
 
-@superuser_required
+permission_classes([IsSuperUser])
 def users_list(request):
 
     users = User.objects.all().order_by('-id')
@@ -378,7 +369,7 @@ def users_list(request):
 
 # -------------------------------------------------------------------------------------------------------------- disable user
 
-@superuser_required
+@permission_classes([IsSuperUser])
 def disable_user(request, user_id):
 
     if request.user.id == user_id:
@@ -396,7 +387,7 @@ def disable_user(request, user_id):
 
 # -------------------------------------------------------------------------------------------------------------- enable user
 
-@superuser_required
+permission_classes([IsSuperUser])
 def enable_user(request, user_id):
 
     user = get_object_or_404(User, id=user_id)
@@ -407,7 +398,7 @@ def enable_user(request, user_id):
 
 # -------------------------------------------------------------------------------------------------------------- delete users
 
-@superuser_required
+@permission_classes([IsSuperUser])
 def delete_user(request, user_id):
     
     if request.user.id == user_id:
@@ -426,6 +417,7 @@ def delete_user(request, user_id):
 # --------------------------------------------------------------------------------------------------------------  QR code generator
 
 @api_view(['GET'])
+# @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def booking_qr(request, booking_id):
     try:
@@ -461,6 +453,8 @@ def booking_qr(request, booking_id):
 
 # ----------------------------------------------------------------------------------------------  PDF ticket generator
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def download_ticket_pdf(request, booking_id):
     # Get the booking object
     booking = get_object_or_404(Booking, id=booking_id, user=request.user)

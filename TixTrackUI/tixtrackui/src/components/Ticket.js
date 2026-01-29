@@ -7,6 +7,8 @@ import logo from "../images/TixTrack_Logo.svg";
 
 import checkAuth from "./auth/checkAuth";
 
+import { useSelector } from "react-redux";
+
 
 const Ticket = () => {
     const { bookingId } = useParams();
@@ -15,19 +17,31 @@ const Ticket = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+    
+    var user = useSelector(store=>store.auth.user);
+
+    // const token = localStorage.getItem("token");
+
+    
     useEffect(() => {
         axios.get(`http://localhost:8000/bookingqrcode/${bookingId}/`,
             {
-                withCredentials: true 
+                headers: {
+                // 'Authorization':"Bearer "+ user.token 
+                Authorization: "Token " + user.token
+                } 
             })
         .then(response => {
             setQrCode(response.data.qr_code);
             
             const concertId = response.data.concert_id;
-            return axios.get(`http://localhost:8000/api/concerts/${concertId}/`, {
-                withCredentials: true
-            });
-            // setLoading(false);
+            return axios.get(`http://localhost:8000/api/concerts/${concertId}/`, 
+                {
+                    headers: {
+                        // 'Authorization':"Bearer "+ user.token,
+                        Authorization: "Token " + user.token
+                    }
+                });
         })
 
         .then(response => setConcert(response.data))
@@ -47,7 +61,37 @@ const Ticket = () => {
             .finally(() =>
                 setLoading(false)
             );
-    }, [bookingId]);
+    }, [bookingId, user.token]);
+
+    // ------------------------------------------------------- Download PDF ticket
+
+    const downloadPdf = () => {
+        axios.get(
+            `http://localhost:8000/download_ticket/${bookingId}/`,
+            {
+                headers: {
+                    Authorization: "Token " + user.token
+                },
+                responseType: "blob"
+            }
+        )
+        .then(response => {
+            const url = window.URL.createObjectURL(
+                new Blob([response.data], { type: "application/pdf" })
+            );
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `ticket_${bookingId}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Failed to download ticket PDF");
+        });
+    };
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p className="text-danger">{error}</p>;
@@ -84,14 +128,20 @@ const Ticket = () => {
                 </div>
                 <br/>
                 <div className="text-center">
-                    <a
+                    {/* <a
                         href={`http://localhost:8000/download_ticket/${bookingId}/`}
                         className="btn btn-primary mt-3"
                         target="_blank"
                         rel="noopener noreferrer"
                     >
                         Download PDF
-                    </a>
+                    </a> */}
+                    <button
+                        className="btn btn-primary mt-3"
+                        onClick={downloadPdf}
+                    >
+                        Download PDF
+                    </button>
                 </div>
             </div>
             

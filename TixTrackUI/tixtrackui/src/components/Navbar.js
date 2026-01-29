@@ -18,25 +18,28 @@ function Navbar() {
 
     
     const user = useSelector(state => state.auth.user);
-    //const token = user?.token;   // ------------------------------- get token from redux store
+    const token = user?.token;   // ------------------------------- get token from redux store
 
     function logoutuser() {
 
-        const csrftoken = Cookies.get("csrftoken");    // --------------------------------- get CSRF token from cookie
+        // const csrftoken = Cookies.get("csrftoken");    // --------------------------------- get CSRF token from cookie
+
+        if (!token) {
+            console.error("No token found, cannot logout");
+            dispatch(removeUser());
+            navigate('/login');
+            return;
+        }
 
         axios.post('http://127.0.0.1:8000/logout/', {}, {
-            
-            withCredentials: true,   // ------------------------------- send session cookie
 
             headers: {
-                // Authorization: `Token ${token}`,
-                // "X-CSRFToken": csrftoken,          // --------------- send CSRF token
-                "X-CSRFToken": Cookies.get("csrftoken"),
+                Authorization: `Token ${token}`,
             }
 
         })
-        .then(res => {
-            console.log(res.data.message);             // ------------------------- optional: show logout message
+        .then(response => {
+            console.log(response.data.message);             // ------------------------- optional: show logout message
         })
         .catch(err => {
             console.error("Logout failed", err);      // ------------------------- handle errors
@@ -69,7 +72,7 @@ function Navbar() {
                         <NavLink to={'/concerts'} className="nav-link">Concerts</NavLink>
                     </li>
                     <li className="nav-item">
-                        <NavLink to={'/'} className="nav-link">About us</NavLink>
+                        <NavLink to={'/aboutus'} className="nav-link">About us</NavLink>
                     </li>
                     </ul>
 

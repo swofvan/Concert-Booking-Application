@@ -6,6 +6,7 @@ const checkAuth = (Component) => {
 
     function Wrapper(props) {
         const user = useSelector((store) => store.auth.user);
+        console.log("checkAuth - user:", user);
         const navigate = useNavigate();
 
         useEffect(() => {

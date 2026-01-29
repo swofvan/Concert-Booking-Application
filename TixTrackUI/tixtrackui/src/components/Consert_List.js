@@ -6,29 +6,17 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 
-// function Concert_list() {
+import Footer from "./footer";
 
-//     const [concert, setConcert] =useState([]);
-
-//     useEffect(() => {
-//         axios.get('http://127.0.0.1:8000/api/concerts')
-//             .then(response => {
-//                 setConcert(response.data);
-//             })
-//             .catch(error => {
-//                 console.log("Error fetching concerts:", error);
-//             })
-//     }, [])
 
 function Concert_list() {
+    const token = localStorage.getItem("token");
 
-    const [concert, setConcert] =useState([]);
+
+    const [concert, setConcert] = useState([]);
 
     useEffect(() => {
-        axios.get("http://localhost:8000/api/concerts", 
-            {
-                withCredentials: true
-            })
+        axios.get("http://localhost:8000/api/concerts")
             .then(response => {
                 setConcert(response.data);
             })
@@ -75,6 +63,10 @@ function Concert_list() {
                 </div>
                 </div>
             </div>
+
+            <br/><br/>
+
+            <Footer/>
 
         </div>
         

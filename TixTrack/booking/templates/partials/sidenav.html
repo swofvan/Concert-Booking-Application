@@ -1,64 +1,9 @@
 {% load static %}
 
-<!--
-<link rel="stylesheet" type="text/css" href="{% static 'style.css' %}">
-    
-        <div id="sidenav" style="background: linear-gradient(#7F01F4, #1E052F); min-height: 100vh;">
-          <div style="margin-left: 20px;">
-            
-            <img src="{% static 'TixTrack_Logo_white.svg' %}" alt="logo" style="margin-top: 20px;">
-            
-            
-            <ul class="nav flex-column" style="margin-top: 50px; gap: 20px; margin-left: 10px;">
-
-                <li class="nav-item" style="margin-top: 250px;">
-                    <i class="bi bi-house-fill text-white"></i>
-                    <a class="nav-link text-white" href="{% url 'concertlist' %}">Concerts</a>
-                </li>
-
-                <li class="nav-item" style="margin-top: 50px;">
-                    <i class="bi bi-plus-circle text-white"></i>
-                    <a class="nav-link text-white" href="{% url 'add_concerts' %}" >Add Concerts</a>
-                </li>
-
-                <li class="nav-item" style="margin-top: 50px;">
-                    <i class="bi bi-ticket-detailed-fill text-white"></i>
-                    <a class="nav-link text-white" href="{% url 'bookings_list' %}" >Bookings</a>
-                </li>
-
-                <li class="nav-item" style="margin-top: 50px;">
-                    <i class="bi bi-person-fill text-white"></i>
-                    <a class="nav-link text-white" href="#" >Users</a>
-                </li>
-
-                <li class="nav-item" style="margin-top: 50px;">
-                    <i class="bi bi-box-arrow-up-right text-white"></i>
-                    <a class="nav-link text-white"
-                    href="http://localhost:3000/concerts">
-                    User Side
-                    </a>
-                </li>
-
-                    <li class="nav-item" style="margin-top: 250px;"> 
-                    <form method="POST" action="{% url 'logout' %}">
-                        {% csrf_token %}
-                        <button type="submit"
-                            lass="btn btn-danger btn-block">    
-                            <i class="bi bi-box-arrow-right"></i> 
-                            Logout
-                        </button>
-                    </form>
-                    </li>
-
-            </ul>
-            </div>
-        </div>
--->
-
 {% load static %}
 
 <div id="sidenav"
-     style="background: linear-gradient(#7F01F4, #1E052F); min-height: 100vh;">
+     style="background: linear-gradient(#7F01F4, #1E052F); min-height: 100%;">
 
     <div class="p-3">
 

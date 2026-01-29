@@ -6,113 +6,9 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import checkAuth from "./auth/checkAuth";
+import { useSelector } from "react-redux";
 
-// function BookTickets() {
-
-//     const navigate = useNavigate();
-//     const { concertId } = useParams();     // ----------------------------- get ID from URL
-
-//     const [concert, setConcert] = useState(null);
-
-//     const [tickets, setTickets] = useState(0);
-//     const [loading, setLoading] = useState(false);
-
-//     const [errorMessage, setErrorMessage] = useState('');
-
-//     useEffect(() => {
-//         if (!concertId) {
-//             setLoading(false);
-//             return;
-//         }
-
-//         axios.get(`http://127.0.0.1:8000/api/concerts/${concertId}/`)
-//             .then((response) => {
-//                 setConcert(response.data);
-//             })
-//             .catch(() => {
-//                 alert("Failed to load concert details");
-//                 navigate("/concerts");
-//             })
-//             .finally(() => {
-//                 setLoading(false);
-//             });
-//     }, [concertId, navigate]);
-
-
-
-//      if (!concert) {
-//         return (
-//             <div style={{ backgroundColor: "#e9f2ff", minHeight: "100vh" }}>
-//                 <Navbar />
-//                 <div className="text-center mt-5">
-//                     <div className="spinner-border text-primary"></div>
-//                     <p>Loading concert details...</p>
-//                 </div>
-//             </div>
-//         );
-//     }
-
-//     // ------------------------------------------------------- Ticket change handler,   Validation while typing (UX)
-
-//     const handleTicketChange = (e) => {
-//         const value = Number(e.target.value);
-
-//         if (value < 1 || value > 3) {
-//             setErrorMessage("You can book between 1 and 3 tickets only");
-//         } else {
-//             setErrorMessage("");
-//         }
-
-//         setTickets(value);
-//     };
-
-// // ------------------------------------------------------- Validation before API call (Safety)
-
-//     const bookTickets = () => {
-
-//         if (tickets < 1 || tickets > 3) {
-//             setErrorMessage("Please select between 1 and 3 tickets");
-//             return;
-//         }
-
-//         const token = localStorage.getItem("token");
-
-//         if (!token) {
-//             alert("Please login to book tickets");
-//             navigate("/login");
-//             return;
-//         }
-
-//         setLoading(true);
-
-//         axios.post(
-//             "http://127.0.0.1:8000/create_booking/",
-//             {
-//                 show_id: concert.id,
-//                 tickets: tickets
-//             },
-//             {
-                
-//                     withCredentials: true,
-//                 headers: {
-//                     // Authorization: `Token ${token}`,
-//                     "Content-Type": "application/json"
-//                 }
-//             }
-//         )
-//         .then((response) => {
-//             alert('Booking created!');
-//             // navigate(`/payment/${response.data.booking_id}`);
-//             navigate('/concerts')
-//         })
-//         .catch((error) => {
-//             alert(error.response?.data?.error || "Booking failed");
-//         })
-//         .finally(() => {
-//             setLoading(false);
-//         });
-//     };
-
+import Footer from "./footer";
 
 
 function BookTickets() {
@@ -124,6 +20,9 @@ function BookTickets() {
     const [tickets, setTickets] = useState(1);
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+    
+    var user = useSelector(store=>store.auth.user);
+
 
     const isTicketInvalid = tickets < 1 || tickets > 3 || (concert && tickets > concert.available_tickets);
 
@@ -132,7 +31,9 @@ function BookTickets() {
         axios.get(// `http://127.0.0.1:8000/api/concerts/${concertId}/`,
             `http://localhost:8000/api/concerts/${concertId}/`,
             {
-                withCredentials: true
+                // withCredentials: true,
+                // headers:{'Authorization':"Bearer "+ user.token},
+                Authorization: "Token " + user.token
             })
 
         .then(response => 
@@ -206,14 +107,16 @@ function BookTickets() {
         setLoading(true);
 
         axios.post(
-            // "http://127.0.0.1:8000/create_booking/",
             "http://localhost:8000/create_booking/",
             {
                 show: concert.id,     
                 tickets: tickets
             },
             {
-                withCredentials: true  
+               // headers:{'Authorization':"Bearer "+ user.token},
+                headers: {
+                    Authorization: "Token " + user.token
+                }
             }
         )
         .then((response) => {
@@ -221,12 +124,8 @@ function BookTickets() {
             const bookingId = response.data.id;        
             navigate(`/ticket/${bookingId}`);
         })
-        // .catch(err => {
-        //     alert(err.response?.data?.error || "Booking failed");
-        // })
         .catch(err => {
             if (err.response?.status === 401 || err.response?.status === 403) {
-                // User not logged in or session expired
                 alert("Session expired or not authorized. Please login again.");
                 navigate("/login");
             } else {
@@ -239,16 +138,15 @@ function BookTickets() {
     
 
     return (
-        <div style={{ backgroundColor: "#e9f2ff", minHeight: "100vh" }}>
+        <div style={{ backgroundColor: "#e9f2ff", minHeight: "100vh"}}>
 
             <Navbar />
 
             <div className="container mt-5">
-                <div className="row">
-                    <div className="col-md-6 offset-3" 
-                        style={{display:'flex', justifyContent:"center", alignItems:'center'}}>
+                <div className="row ">
+                    <div className="col-md-6 offset-md-3">
 
-                        <div className="card text-center" style={{ maxWidth:'600px'}}>
+                        <div className="card text-center mx-auto" style={{ maxWidth:'600px'}}>
                             <img src={concert.image}
                                 className="card-img-top"
                                 alt={concert.concert_name}
@@ -296,6 +194,8 @@ function BookTickets() {
                 </div>
             </div>
                 <br/><br/>
+
+                <Footer/>
         </div>
     );
 }

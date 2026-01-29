@@ -5,6 +5,9 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 
 
+import Footer from "./footer";
+
+
 function View_Concert() {
 
     const { concertid } = useParams();
@@ -13,6 +16,7 @@ function View_Concert() {
 
     const [concert, setConcert] = useState(null);
     const [loading, setLoading] = useState(true);
+
 
     useEffect(() => {
         if (!concertid) {
@@ -94,6 +98,8 @@ function View_Concert() {
                 </div>
                 </div>
             </div>
+            <br/><br/>  
+            <Footer />
 
         </div>
         

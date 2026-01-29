@@ -3,7 +3,8 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
 import Navbar from "../Navbar";
-import "../../App.css"
+import Footer from "../footer";
+import "../../App.css";
 
 function Register() {
 
@@ -94,7 +95,7 @@ function Register() {
                     <div className='col-md-6 offset-3' id="registerformbg">
                         
                         <Link to={'/'} className="btn btn-outline-secondary">
-                            <i class="bi bi-house-door"></i>
+                            <i className="bi bi-house-door"></i>
                         </Link>
 
                         <h2 className="text-center">Signup</h2>
@@ -153,6 +154,8 @@ function Register() {
                 </div>
             </div>
 
+            <Footer/>
+            
         </div>
     )
 }

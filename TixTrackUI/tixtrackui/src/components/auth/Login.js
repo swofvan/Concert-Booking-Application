@@ -3,10 +3,10 @@ import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { setUser } from "../store/authSlice";
 import { useNavigate, Link } from "react-router-dom";
+
 import Navbar from "../Navbar";
+import Footer from "../footer";
 
-
-import Cookies from "js-cookie";
 
 function Login() {
     
@@ -42,7 +42,7 @@ function Login() {
             return;
         }
 
-        const csrftoken = Cookies.get("csrftoken");   // --------------------------------- get CSRF token from cookie
+        // const csrftoken = Cookies.get("csrftoken");   // --------------------------------- get CSRF token from cookie
 
     axios.post(
         "http://localhost:8000/login/",
@@ -50,26 +50,31 @@ function Login() {
             email,
             password
         },
-        {
-            withCredentials: true   // REQUIRED for Django session
-        }
+        // {
+        //     withCredentials: true   // REQUIRED for Django session
+        // }
     )
     .then(res => {
+
+        // const token = res.data.token;
+
+        // localStorage.setItem("token", token);
 
         const user = {
             email: res.data.email,
             username: res.data.username,
             is_superuser: res.data.is_superuser,
+            token: res.data.token
         };
 
         //  Save user in redux + localStorage
         dispatch(setUser(user));
 
-        //  ADMIN → Django pages
+        //  ADMIN Django pages
         if (user.is_superuser) {
             window.location.href = "http://localhost:8000/";
         }
-        //  NORMAL USER → React app
+        //  NORMAL USER  React app
         else {
             navigate("/");
         }
@@ -140,6 +145,8 @@ function Login() {
                     </div>
                 </div>
             </div>
+
+            <Footer/>
 
         </div>
     )

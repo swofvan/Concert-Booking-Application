@@ -9,6 +9,7 @@ import Login from "./components/auth/Login";
 import BookTickets from "./components/Booking";
 
 import Ticket from "./components/Ticket";
+import AboutUs from "./components/Aboutus";
 
 const router = createBrowserRouter([
     { path: '', element: <App/> },
@@ -21,6 +22,8 @@ const router = createBrowserRouter([
     { path: '/booking/:concertId', element: <BookTickets/> },
 
     { path: '/ticket/:bookingId', element: <Ticket/> },
+
+    {path: 'aboutus', element: <AboutUs/> },
 ]);
 
 export default router;
