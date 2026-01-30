@@ -31,8 +31,6 @@ function BookTickets() {
         axios.get(// `http://127.0.0.1:8000/api/concerts/${concertId}/`,
             `http://localhost:8000/api/concerts/${concertId}/`,
             {
-                // withCredentials: true,
-                // headers:{'Authorization':"Bearer "+ user.token},
                 Authorization: "Token " + user.token
             })
 
@@ -113,7 +111,6 @@ function BookTickets() {
                 tickets: tickets
             },
             {
-               // headers:{'Authorization':"Bearer "+ user.token},
                 headers: {
                     Authorization: "Token " + user.token
                 }

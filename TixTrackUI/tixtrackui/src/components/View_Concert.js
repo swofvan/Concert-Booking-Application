@@ -69,7 +69,7 @@ function View_Concert() {
                 <div className='col-md-5'>
 
                     <div className="card" 
-                        style={{borderRadius:'10px'}}>
+                        style={{borderRadius:'10px', minHeight:'450px'}}>
                         <div className="card-body">
                             <ul className="list-group list-group-flush" id="concertdetails">
                                 <li className="list-group-item">
