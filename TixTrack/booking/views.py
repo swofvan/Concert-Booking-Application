@@ -64,19 +64,6 @@ def check_login(request):
 
 # --------------------------------------------------------------------------------------------------------------  admin check
 
-# def superuser_required(view_func):
-#     def wrapper(request, *args, **kwargs):
-       
-#         if not request.user.is_authenticated:
-#             return HttpResponseForbidden("Please login first")
-       
-#         if request.user.is_superuser:
-#             return view_func(request, *args, **kwargs)
-       
-#         return HttpResponseForbidden("You must be superuser to access this page")
-    
-#     return wrapper
-
 
 class IsSuperUser(BasePermission):
     def has_permission(self, request, view):
@@ -89,8 +76,6 @@ class IsSuperUser(BasePermission):
 
 
 # --------------------------------------------------------------------------------------------------------------   admin view
-
-# @authentication_classes([CsrfExemptSessionAuthentication])
 
 @permission_classes([IsSuperUser])
 def concertlist(request):
@@ -227,7 +212,6 @@ def register(request):
 # -------------------------------------------------------------------------------------------------------------- Login
 
 @api_view(['POST'])
-# @authentication_classes([CsrfExemptSessionAuthentication])
 @permission_classes([AllowAny])
 def user_login(request):
 
@@ -417,7 +401,6 @@ def delete_user(request, user_id):
 # --------------------------------------------------------------------------------------------------------------  QR code generator
 
 @api_view(['GET'])
-# @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def booking_qr(request, booking_id):
     try:
